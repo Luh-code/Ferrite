@@ -1,6 +1,6 @@
-package dom;
+package com.ferrite.dom;
 
-import dom.exceptions.DOMNodeRulePermittedChildDuplicationException;
+import com.ferrite.dom.exceptions.DOMNodeRulePermittedChildDuplicationException;
 
 import java.util.ArrayList;
 

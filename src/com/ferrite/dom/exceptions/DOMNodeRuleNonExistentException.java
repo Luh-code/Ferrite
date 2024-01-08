@@ -1,6 +1,6 @@
-package dom.exceptions;
+package com.ferrite.dom.exceptions;
 
-import dom.NodeType;
+import com.ferrite.dom.NodeType;
 
 public class DOMNodeRuleNonExistentException extends DOMException {
   public DOMNodeRuleNonExistentException(NodeType root, NodeType vertex) {

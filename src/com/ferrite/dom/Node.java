@@ -1,14 +1,11 @@
-package dom;
+package com.ferrite.dom;
 
-import dom.exceptions.DOMNodeEdgeDuplicationException;
-import dom.exceptions.DOMNodeRuleNonExistentException;
-import dom.exceptions.DOMNodeRulePluralityViolationException;
-import dom.exceptions.DOMNodeRuleTypeViolationException;
+import com.ferrite.dom.exceptions.DOMNodeEdgeDuplicationException;
+import com.ferrite.dom.exceptions.DOMNodeRuleNonExistentException;
+import com.ferrite.dom.exceptions.DOMNodeRulePluralityViolationException;
+import com.ferrite.dom.exceptions.DOMNodeRuleTypeViolationException;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Node {
   private ArrayList<Node> edges;

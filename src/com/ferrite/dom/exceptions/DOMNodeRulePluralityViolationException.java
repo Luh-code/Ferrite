@@ -1,6 +1,6 @@
-package dom.exceptions;
+package com.ferrite.dom.exceptions;
 
-import dom.Node;
+import com.ferrite.dom.Node;
 
 public class DOMNodeRulePluralityViolationException extends DOMException {
 

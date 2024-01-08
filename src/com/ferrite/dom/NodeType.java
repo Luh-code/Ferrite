@@ -1,7 +1,7 @@
-package dom;
+package com.ferrite.dom;
 
-import dom.exceptions.DOMNodeRuleNonExistentException;
-import dom.exceptions.DOMNodeRulePermittedChildDuplicationException;
+import com.ferrite.dom.exceptions.DOMNodeRuleNonExistentException;
+import com.ferrite.dom.exceptions.DOMNodeRulePermittedChildDuplicationException;
 
 public enum NodeType {
   SYSTEM(Rules.SYSTEM),

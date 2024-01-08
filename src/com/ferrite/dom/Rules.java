@@ -1,4 +1,4 @@
-package dom;
+package com.ferrite.dom;
 
 import java.util.function.Supplier;
 
@@ -74,7 +74,6 @@ enum Rules {
 
   Rules(Supplier<NodeSettings[]> settings) {
     this.settings = settings;
-    //this.rules = Arrays.stream(this.rules).toList().addAll(Rules.GENERAL.getRules());
   }
 
   public NodeSettings[] getSettings() {
