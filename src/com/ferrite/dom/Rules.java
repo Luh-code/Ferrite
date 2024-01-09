@@ -8,75 +8,87 @@ import static com.ferrite.dom.NodeVariantType.*;
 // Not sanitized at compile time! Sanitization occurs at runtime whilst tree construction.
 // NodeType.CUSTOM undergoes a post-sanitization
 enum Rules {
-  GENERAL(NONE,() -> new NodeSettings[]{
+  GENERAL(NONE,() -> new Rules[]{}, () -> new NodeSettings[]{
           new NodeSettings(NodeType.EXTERNAL),
           new NodeSettings(NodeType.PATH),
           new NodeSettings(NodeType.QUERY)
   }),
-  SYSTEM(NONE, () -> new NodeSettings[]{
+  VERSIONED(NONE, () -> new Rules[]{}, () -> new NodeSettings[]{
           new NodeSettings(NodeType.FERRITE_MAJOR),
-          new NodeSettings(NodeType.FERRITE_MINOR)
+          new NodeSettings(NodeType.FERRITE_MINOR),
+          new NodeSettings(NodeType.MAJOR),
+          new NodeSettings(NodeType.MINOR),
   }),
-  FERRITE_MAJOR(INTEGER, () -> new NodeSettings[]{}),
-  FERRITE_MINOR(INTEGER, () -> new NodeSettings[]{}),
-  MAJOR(INTEGER, () -> new NodeSettings[]{}),
-  MINOR(INTEGER, () -> new NodeSettings[]{}),
-  ALIAS(STRING, () -> new NodeSettings[]{}),
-  MACHINE(NONE, () -> new NodeSettings[]{
+  ALIASED(NONE, () -> new Rules[]{}, () -> new NodeSettings[]{
+          new NodeSettings(NodeType.ALIAS)
+  }),
+  SYSTEM(NONE,() -> new Rules[]{ GENERAL, VERSIONED, ALIASED }, () -> new NodeSettings[]{
+          new NodeSettings(NodeType.MACHINE).setArrayable(),
+          new NodeSettings(NodeType.STATE).setArrayable()
+  }),
+  FERRITE_MAJOR(INTEGER,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
+  FERRITE_MINOR(INTEGER,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
+  MAJOR(INTEGER,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
+  MINOR(INTEGER,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
+  ALIAS(STRING,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
+  MACHINE(NONE,() -> new Rules[]{ GENERAL, VERSIONED, ALIASED }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TRIGGER).setArrayable(),
           new NodeSettings(NodeType.OUTPUT).setArrayable(),
           new NodeSettings(NodeType.STATE).setArrayable()
   }),
-  EXTERNAL(NONE, () -> new NodeSettings[]{}),
-  PATH(STRING, () -> new NodeSettings[]{}),
-  STATE(NONE, () -> new NodeSettings[]{
+  EXTERNAL(BOOLEAN,() -> new Rules[]{ }, () -> new NodeSettings[]{}),
+  PATH(STRING,() -> new Rules[]{ }, () -> new NodeSettings[]{}),
+  STATE(NONE,() -> new Rules[]{ GENERAL, ALIASED }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.ORIGIN),
           new NodeSettings(NodeType.ENTRY),
           new NodeSettings(NodeType.BEGIN),
-          new NodeSettings(NodeType.TRANSITION).setArrayable()
+          new NodeSettings(NodeType.TRANSITION).setArrayable(),
+          new NodeSettings(NodeType.STATE)
   }),
-  TRIGGER(NONE, () -> new NodeSettings[]{
+  TRIGGER(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TYPE),
           new NodeSettings(NodeType.CUSTOM).setArrayable()
   }),
-  OUTPUT(NONE, () -> new NodeSettings[]{
+  OUTPUT(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TYPE),
           new NodeSettings(NodeType.CUSTOM).setArrayable()
   }),
-  ORIGIN(BOOLEAN, () -> new NodeSettings[]{}),
-  ENTRY(BOOLEAN, () -> new NodeSettings[]{}),
-  BEGIN(BOOLEAN, () -> new NodeSettings[]{}),
-  TRANSITION(NONE, () -> new NodeSettings[]{
+  ORIGIN(BOOLEAN,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
+  ENTRY(BOOLEAN,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
+  BEGIN(BOOLEAN,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
+  TRANSITION(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.STATE),
           new NodeSettings(NodeType.IF).setArrayable()
   }),
-  TYPE(STRING, () -> new NodeSettings[]{}),
-  IF(NONE, () -> new NodeSettings[]{
+  TYPE(STRING,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
+  IF(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.EQUALS).setArrayable(),
           new NodeSettings(NodeType.LESSER).setArrayable(),
           new NodeSettings(NodeType.GREATER).setArrayable()
   }),
-  EQUALS(NONE, () -> new NodeSettings[]{
+  EQUALS(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TRIGGER),
           new NodeSettings(NodeType.VALUE)
   }),
-  LESSER(NONE, () -> new NodeSettings[]{
+  LESSER(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TRIGGER),
           new NodeSettings(NodeType.VALUE)
   }),
-  GREATER(NONE, () -> new NodeSettings[]{
+  GREATER(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TRIGGER),
           new NodeSettings(NodeType.VALUE)
   }),
-  VALUE(STRING, () -> new NodeSettings[]{}),
-  QUERY(STRING, () -> new NodeSettings[]{}),
-  CUSTOM(NONE, () -> new NodeSettings[]{}); // has to always remain empty here, as rules for a custom node are handled later down the line
+  VALUE(STRING,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
+  QUERY(STRING,() -> new Rules[]{ }, () -> new NodeSettings[]{}),
+  CUSTOM(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}); // has to always remain empty here, as rules for a custom node are handled later down the line
 
   private Supplier<NodeSettings[]> settings;
+  private Supplier<Rules[]> extensions;
   private NodeVariantType nodeVariantType;
 
-  Rules(NodeVariantType nodeVariantType, Supplier<NodeSettings[]> settings) {
+  Rules(NodeVariantType nodeVariantType, Supplier<Rules[]> extensions, Supplier<NodeSettings[]> settings) {
     this.nodeVariantType = nodeVariantType;
+    this.extensions = extensions;
     this.settings = settings;
   }
 
@@ -86,5 +98,9 @@ enum Rules {
 
   public NodeVariantType getNodeVariantType() {
     return nodeVariantType;
+  }
+
+  public Supplier<Rules[]> getExtensions() {
+    return extensions;
   }
 }

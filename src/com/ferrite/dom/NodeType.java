@@ -3,6 +3,9 @@ package com.ferrite.dom;
 import com.ferrite.dom.exceptions.DOMNodeRuleNonExistentException;
 import com.ferrite.dom.exceptions.DOMNodeRulePermittedChildDuplicationException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public enum NodeType {
   SYSTEM(Rules.SYSTEM),
 
@@ -60,8 +63,16 @@ public enum NodeType {
   }
 
   public NodeRule getRule() {
+    ArrayList<NodeSettings> settings = new ArrayList<>(List.of(this.rules.getSettings()));
+    for (Rules r : this.rules.getExtensions().get()) {
+      for (NodeSettings s : r.getSettings()){
+        if (!settings.contains(s)) {
+          settings.add(s);
+        }
+      }
+    }
     try {
-      return new NodeRule(this, this.rules.getSettings(), this.rules.getNodeVariantType());
+      return new NodeRule(this, settings.toArray(NodeSettings[]::new), this.rules.getNodeVariantType());
     } catch (DOMNodeRulePermittedChildDuplicationException e) {
       throw new RuntimeException(e);
     }

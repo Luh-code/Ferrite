@@ -8,11 +8,11 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.function.BiConsumer;
 
-public class XMLDOMParser {
-  public Node parseNodes(XMLToken[] xmlTokens) throws DOMXMLParsingIllegalTokenTypeException, DOMXMLParsingIllegalTagException, DOMNodeEdgeDuplicationException, DOMNodeRuleNonExistentException, DOMNodeRuleTypeViolationException, DOMNodeRulePluralityViolationException, DOMXMLParsingMissingClosingTokenException, DOMXMLParsingMissingPairingException, DOMXMLParsingMissingOpeningTokenException, DOMXMLParsingNullTokenException, DOMXMLParsingDuplicateVariantException, DOMXMLParsingIllegalNoneTypeVariantSettingException, DOMXMLParsingMismatchedVariantTypeException {
-    Node root = null;
-    Map<XMLToken, Node> pairing = new HashMap<>();
-    Map<Node, XMLToken> revPairing = new HashMap<>();
+public class XMLParser {
+  private Node root;
+  Map<XMLToken, Node> pairing = new HashMap<>();
+  Map<Node, XMLToken> revPairing = new HashMap<>();
+  public void parseNodes(XMLToken[] xmlTokens) throws DOMXMLParsingIllegalTokenTypeException, DOMXMLParsingIllegalTagException, DOMNodeEdgeDuplicationException, DOMNodeRuleNonExistentException, DOMNodeRuleTypeViolationException, DOMNodeRulePluralityViolationException, DOMXMLParsingMissingClosingTokenException, DOMXMLParsingMissingPairingException, DOMXMLParsingMissingOpeningTokenException, DOMXMLParsingNullTokenException, DOMXMLParsingDuplicateVariantException, DOMXMLParsingIllegalNoneTypeVariantSettingException, DOMXMLParsingMismatchedVariantTypeException {
     BiConsumer<XMLToken, Node> pairingAdder = (XMLToken token, Node node) -> {
       pairing.put(token, node);
       revPairing.put(node, token);
@@ -79,6 +79,29 @@ public class XMLDOMParser {
             throw new DOMXMLParsingMissingOpeningTokenException(xmlAttributeToken);
           }
           nodeStack.peek().addEdge(temp);
+          nodeStack.push(temp);
+          try {
+            switch (nodeStack.peek().getType().getRule().getVariantType()) {
+              case INTEGER -> {
+                nodeStack.peek().setVariant(new NodeVariant(Integer.parseInt(xmlAttributeToken.getValue())));
+              }
+              case FLOAT -> {
+                nodeStack.peek().setVariant(new NodeVariant(Float.parseFloat(xmlAttributeToken.getValue())));
+              }
+              case STRING -> {
+                nodeStack.peek().setVariant(new NodeVariant(xmlAttributeToken.getValue()));
+              }
+              case BOOLEAN -> {
+                nodeStack.peek().setVariant(new NodeVariant(Boolean.parseBoolean(xmlAttributeToken.getValue())));
+              }
+              case NONE -> {
+                throw new DOMXMLParsingIllegalNoneTypeVariantSettingException(xmlAttributeToken.getValue());
+              }
+            }
+          } catch (NumberFormatException e) {
+            throw new DOMXMLParsingMismatchedVariantTypeException(e);
+          }
+          nodeStack.pop();
         }
         case XMLTextToken xmlTextToken -> {
           // Throw if current is null
@@ -113,7 +136,9 @@ public class XMLDOMParser {
         case null, default -> throw new DOMXMLParsingIllegalTokenTypeException(token);
       }
     }
-    return root;
+    if (nodeStack.size() > 1 || nodeStack.peek() != null) {
+      throw new DOMXMLParsingMissingClosingTokenException(nodeStack.peek());
+    }
   }
 
   private NodeType getNodeType(String tag) throws DOMXMLParsingIllegalTagException {
