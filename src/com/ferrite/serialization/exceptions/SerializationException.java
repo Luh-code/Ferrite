@@ -1,4 +1,4 @@
-package com.ferrite.dom.serialization.exceptions;
+package com.ferrite.serialization.exceptions;
 
 import com.ferrite.FerriteException;
 

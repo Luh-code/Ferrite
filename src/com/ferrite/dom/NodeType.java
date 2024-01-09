@@ -85,4 +85,18 @@ public enum NodeType {
     }
     throw new DOMNodeRuleNonExistentException(this, node);
   }
+
+  /**
+   * Returns the equivalent NodeType to the provided String, ignoring case
+   * @param string String to be matched
+   * @return The NodeType corresponding to the String, if not found null
+   */
+  public static NodeType fromString(String string) {
+    for (NodeType value : NodeType.values()) {
+      if (value.name().equalsIgnoreCase(string)) {
+        return value;
+      }
+    }
+    return null;
+  }
 }

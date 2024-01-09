@@ -1,4 +1,4 @@
-package com.ferrite.dom.serialization;
+package com.ferrite.serialization;
 
 public class XMLClosingToken extends XMLToken {
   public XMLClosingToken(String tag, int depth) {

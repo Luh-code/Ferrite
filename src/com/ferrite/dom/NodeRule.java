@@ -7,11 +7,13 @@ import java.util.ArrayList;
 public class NodeRule {
   private NodeType type;
   private ArrayList<NodeSettings> permittedChildren;
+  private NodeVariantType variantType;
 
-  public NodeRule(NodeType type, NodeSettings[] permittedChildren) throws DOMNodeRulePermittedChildDuplicationException {
+  public NodeRule(NodeType type, NodeSettings[] permittedChildren, NodeVariantType variantType) throws DOMNodeRulePermittedChildDuplicationException {
     this.type = type;
     this.permittedChildren = new ArrayList<>();
     this.addPermittedChildren(permittedChildren);
+    this.variantType = variantType;
   }
 
   public void addPermittedChild(NodeSettings type) throws DOMNodeRulePermittedChildDuplicationException {
@@ -29,5 +31,9 @@ public class NodeRule {
 
   public NodeSettings[] getPermittedChildren() {
     return this.permittedChildren.toArray(new NodeSettings[0]);
+  }
+
+  public NodeVariantType getVariantType() {
+    return variantType;
   }
 }

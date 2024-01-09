@@ -1,7 +1,4 @@
-package com.ferrite.dom.serialization;
-
-import com.ferrite.dom.Node;
-import com.ferrite.dom.serialization.exceptions.SerializationTokenIllegalRebindingException;
+package com.ferrite.serialization;
 
 public class XMLToken {
   private String data;

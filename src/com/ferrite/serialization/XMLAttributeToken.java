@@ -1,4 +1,4 @@
-package com.ferrite.dom.serialization;
+package com.ferrite.serialization;
 
 public class XMLAttributeToken extends XMLToken {
   private String value;

@@ -1,4 +1,4 @@
-package com.ferrite.dom.serialization.exceptions;
+package com.ferrite.serialization.exceptions;
 
 public class SerializationTokenMissingClosingTagException extends SerializationException {
   public SerializationTokenMissingClosingTagException(String unclosedTag) {

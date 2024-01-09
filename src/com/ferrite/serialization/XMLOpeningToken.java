@@ -1,4 +1,4 @@
-package com.ferrite.dom.serialization;
+package com.ferrite.serialization;
 
 import java.util.ArrayList;
 

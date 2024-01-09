@@ -1,7 +1,7 @@
-package com.ferrite.dom.serialization.exceptions;
+package com.ferrite.serialization.exceptions;
 
 import com.ferrite.dom.Node;
-import com.ferrite.dom.serialization.XMLToken;
+import com.ferrite.serialization.XMLToken;
 
 public class SerializationTokenIllegalRebindingException extends SerializationException {
   public SerializationTokenIllegalRebindingException(XMLToken token, Node oldNode, Node newNode) {

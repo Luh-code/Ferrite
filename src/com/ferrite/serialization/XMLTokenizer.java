@@ -1,14 +1,15 @@
-package com.ferrite.dom.serialization;
+package com.ferrite.serialization;
 
-import com.ferrite.dom.serialization.exceptions.SerializationMismatchedAttributeValueCountException;
-import com.ferrite.dom.serialization.exceptions.SerializationTokenMissingClosingTagException;
-import com.ferrite.dom.serialization.exceptions.SerializationTokenMissingOpeningTagException;
+import com.ferrite.serialization.exceptions.SerializationMismatchedAttributeValueCountException;
+import com.ferrite.serialization.exceptions.SerializationTokenMissingClosingTagException;
+import com.ferrite.serialization.exceptions.SerializationTokenMissingOpeningTagException;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
+// A regex-based XML Tokenizer with builtin syntax checking
 public class XMLTokenizer {
   private XMLToken[] tokens;
   private Pattern xmlPattern = Pattern.compile("<[^>]+>|[^<]+");

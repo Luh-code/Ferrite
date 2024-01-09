@@ -1,4 +1,4 @@
-package com.ferrite.dom.serialization;
+package com.ferrite.serialization;
 
 public class XMLTextToken extends XMLToken {
   public XMLTextToken(String text, int depth) {

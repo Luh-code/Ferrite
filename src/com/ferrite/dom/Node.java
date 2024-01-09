@@ -10,6 +10,7 @@ import java.util.ArrayList;
 public class Node {
   private ArrayList<Node> edges;
   private NodeType type;
+  private NodeVariant variant;
 
   public Node(NodeType type) {
     this.type = type;
@@ -35,5 +36,13 @@ public class Node {
 
   public NodeType getType() {
     return this.type;
+  }
+
+  public NodeVariant getVariant() {
+    return variant;
+  }
+
+  public void setVariant(NodeVariant variant) {
+    this.variant = variant;
   }
 }

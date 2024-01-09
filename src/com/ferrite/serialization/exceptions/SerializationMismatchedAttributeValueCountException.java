@@ -1,4 +1,4 @@
-package com.ferrite.dom.serialization.exceptions;
+package com.ferrite.serialization.exceptions;
 
 public class SerializationMismatchedAttributeValueCountException extends SerializationException {
   public SerializationMismatchedAttributeValueCountException(int nameCount, int valueCount) {
