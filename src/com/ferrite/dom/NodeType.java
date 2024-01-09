@@ -61,7 +61,7 @@ public enum NodeType {
 
   public NodeRule getRule() {
     try {
-      return new NodeRule(this, this.rules.getSettings());
+      return new NodeRule(this, this.rules.getSettings(), this.rules.getNodeVariantType());
     } catch (DOMNodeRulePermittedChildDuplicationException e) {
       throw new RuntimeException(e);
     }
