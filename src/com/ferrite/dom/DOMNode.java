@@ -7,17 +7,17 @@ import com.ferrite.dom.exceptions.DOMNodeRuleTypeViolationException;
 
 import java.util.ArrayList;
 
-public class Node {
-  private ArrayList<Node> edges;
+public class DOMNode {
+  private ArrayList<DOMNode> edges;
   private NodeType type;
   private NodeVariant variant;
 
-  public Node(NodeType type) {
+  public DOMNode(NodeType type) {
     this.type = type;
     this.edges = new ArrayList<>();
   }
 
-  public void addEdge(Node n) throws DOMNodeEdgeDuplicationException, DOMNodeRuleTypeViolationException, DOMNodeRulePluralityViolationException, DOMNodeRuleNonExistentException {
+  public void addEdge(DOMNode n) throws DOMNodeEdgeDuplicationException, DOMNodeRuleTypeViolationException, DOMNodeRulePluralityViolationException, DOMNodeRuleNonExistentException {
     if (this.edges.contains(n)) {
       throw new DOMNodeEdgeDuplicationException(this, n);
     }
@@ -25,7 +25,7 @@ public class Node {
       throw new DOMNodeRuleTypeViolationException(this, n);
     }
     if (!this.type.checkPlurality(n.getType())) {
-      for (Node vertex : edges) {
+      for (DOMNode vertex : edges) {
         if (vertex.getType() == n.getType()) {
           throw new DOMNodeRulePluralityViolationException(this, n);
         }

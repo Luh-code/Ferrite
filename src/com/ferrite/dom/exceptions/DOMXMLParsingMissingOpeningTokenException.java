@@ -1,7 +1,5 @@
 package com.ferrite.dom.exceptions;
 
-import com.ferrite.dom.Node;
-import com.ferrite.serialization.XMLClosingToken;
 import com.ferrite.serialization.XMLToken;
 
 public class DOMXMLParsingMissingOpeningTokenException extends DOMXMLException {

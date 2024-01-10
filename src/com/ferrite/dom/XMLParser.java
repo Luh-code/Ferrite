@@ -9,16 +9,16 @@ import java.util.Stack;
 import java.util.function.BiConsumer;
 
 public class XMLParser {
-  private Node root;
-  Map<XMLToken, Node> pairing = new HashMap<>();
-  Map<Node, XMLToken> revPairing = new HashMap<>();
+  private DOMNode root;
+  Map<XMLToken, DOMNode> pairing = new HashMap<>();
+  Map<DOMNode, XMLToken> revPairing = new HashMap<>();
   public void parseNodes(XMLToken[] xmlTokens) throws DOMXMLParsingIllegalTokenTypeException, DOMXMLParsingIllegalTagException, DOMNodeEdgeDuplicationException, DOMNodeRuleNonExistentException, DOMNodeRuleTypeViolationException, DOMNodeRulePluralityViolationException, DOMXMLParsingMissingClosingTokenException, DOMXMLParsingMissingPairingException, DOMXMLParsingMissingOpeningTokenException, DOMXMLParsingNullTokenException, DOMXMLParsingDuplicateVariantException, DOMXMLParsingIllegalNoneTypeVariantSettingException, DOMXMLParsingMismatchedVariantTypeException {
-    BiConsumer<XMLToken, Node> pairingAdder = (XMLToken token, Node node) -> {
+    BiConsumer<XMLToken, DOMNode> pairingAdder = (XMLToken token, DOMNode node) -> {
       pairing.put(token, node);
       revPairing.put(node, token);
     };
     // The top node of this stack is the 'current' node
-    Stack<Node> nodeStack = new Stack<>();
+    Stack<DOMNode> nodeStack = new Stack<>();
     nodeStack.push(null); // push null to make sure, that the current node is not set
     for (XMLToken token : xmlTokens) {
       if (token == null) {
@@ -27,7 +27,7 @@ public class XMLParser {
       // Check token type
       switch (token) {
         case XMLOpeningToken xmlOpeningToken -> {
-          Node temp = new Node(getNodeType(xmlOpeningToken.getData())); // Create node from token
+          DOMNode temp = new DOMNode(getNodeType(xmlOpeningToken.getData())); // Create node from token
 
           pairingAdder.accept(xmlOpeningToken, temp); // add to pairings
 
@@ -72,7 +72,7 @@ public class XMLParser {
           }
         }
         case XMLAttributeToken xmlAttributeToken -> {
-          Node temp = new Node(getNodeType(xmlAttributeToken.getData())); // Create node from tag
+          DOMNode temp = new DOMNode(getNodeType(xmlAttributeToken.getData())); // Create node from tag
           pairingAdder.accept(xmlAttributeToken, temp);
           // Throw if current is null
           if (nodeStack.peek() == null) {

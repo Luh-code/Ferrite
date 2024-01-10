@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class Document {
-  private Node root;
+  private DOMNode root;
 
   public void deserialize(String filename) {
     String xmlText;

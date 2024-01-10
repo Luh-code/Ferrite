@@ -9,7 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
-// A regex-based XML Tokenizer with builtin syntax checking
+// A regex-based XML Tokenizer with builtin syntax checking and contextual linking
 public class XMLTokenizer {
   private XMLToken[] tokens;
   private Pattern xmlPattern = Pattern.compile("<[^>]+>|[^<]+");
