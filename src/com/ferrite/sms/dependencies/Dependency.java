@@ -28,4 +28,8 @@ public class Dependency {
     }
 
   }
+
+  public int getDomHash() {
+    return domHash;
+  }
 }
