@@ -1,5 +1,7 @@
 package com.ferrite.dom;
 
+import org.w3c.dom.Node;
+
 import java.util.function.Supplier;
 
 import static com.ferrite.dom.NodeVariantType.*;
@@ -42,20 +44,38 @@ enum Rules {
           new NodeSettings(NodeType.ORIGIN),
           new NodeSettings(NodeType.ENTRY),
           new NodeSettings(NodeType.BEGIN),
+          new NodeSettings(NodeType.END),
           new NodeSettings(NodeType.TRANSITION).setArrayable(),
           new NodeSettings(NodeType.STATE)
   }),
-  TRIGGER(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
+  TRIGGER(NONE,() -> new Rules[]{ GENERAL, ALIASED }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TYPE),
-          new NodeSettings(NodeType.CUSTOM).setArrayable()
+          new NodeSettings(NodeType.CUSTOM).setArrayable(),
+          new NodeSettings(NodeType.ACTIVE),
+          new NodeSettings(NodeType.TIME),
+          new NodeSettings(NodeType.RUNNING)
   }),
-  OUTPUT(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
+  OUTPUT(NONE,() -> new Rules[]{ GENERAL, ALIASED }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TYPE),
-          new NodeSettings(NodeType.CUSTOM).setArrayable()
+          new NodeSettings(NodeType.CUSTOM).setArrayable(),
+          new NodeSettings(NodeType.ACTIVE),
+          new NodeSettings(NodeType.TIME),
+          new NodeSettings(NodeType.RUNNING),
+          new NodeSettings(NodeType.VALUE)
   }),
+  ACTIVE(STRING, () -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
+  TIME(FLOAT,  () -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
+  RUNNING(BOOLEAN, () -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
   ORIGIN(BOOLEAN,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
   ENTRY(BOOLEAN,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
-  BEGIN(BOOLEAN,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}),
+  BEGIN(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
+        new NodeSettings(NodeType.TRIGGER).setArrayable(),
+        new NodeSettings(NodeType.OUTPUT).setArrayable(),
+  }),
+  END(NONE, () -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
+        new NodeSettings(NodeType.TRIGGER).setArrayable(),
+        new NodeSettings(NodeType.OUTPUT).setArrayable(),
+  }),
   TRANSITION(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.STATE),
           new NodeSettings(NodeType.IF).setArrayable()

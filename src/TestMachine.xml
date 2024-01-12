@@ -1,0 +1,109 @@
+<machine>
+<ferrite_major>1</ferrite_major>
+<ferrite_minor>0</ferrite_minor>
+<major>1</major>
+<minor>1</minor>
+<alias>TestMachine</alias>
+<external>false</external>
+<trigger>
+	<alias>magnet sensor 1</alias>
+	<type>digital</type>
+	<active>low</active>
+</trigger>
+<trigger>
+	<alias>magnet sensor 2</alias>
+	<type>digital</type>
+	<active>low</active>
+</trigger>
+<trigger>
+	<alias>state1 timeout</alias>
+	<type>timer</type>
+	<time>5000</time>
+	<running>0</running>
+</trigger>
+<output>
+	<alias>some output</alias>
+	<type>digital</type>
+	<active>high</active>
+	<value>0</value>
+</output>
+<state>
+	<alias>some state</alias>
+	<entry>true</entry>
+	<origin>false</origin>
+	<external>false</external>
+	<begin/>
+	<transition>
+		<state query="FROM state GET 'another state'"/>
+		<if>
+			<equals>
+				<trigger query="FROM trigger GET 'magnet sensor1'"/>
+				<value>1</value>
+			</equals>
+		</if>
+		<if>
+			<equals>
+				<trigger query="FROM trigger GET 'magnet sensor2'"/>
+				<value>1</value>
+			</equals>
+		</if>
+	</transition>
+	<end/>
+</state>
+<state>
+	<alias>another state</alias>
+	<entry>false</entry>
+	<origin>false</origin>
+	<external>false</external>
+	<begin>
+		<output>
+			<query>FROM state GET 'some output'</query>
+			<active>1</active>
+		</output>
+		<trigger>
+			<query>FROM state GET 'state1 timeout'</query>
+			<running>1</running>
+		</trigger>
+	</begin>
+	<transition>
+		<state query="FROM trigger GET 'external state1'"/>
+		<if>
+			<equals>
+				<trigger query="FROM trigger GET 'state1 timeout'"/>
+				<value>0</value>
+			</equals>
+		</if>
+	</transition>
+	<transition>
+		<state query="FROM trigger GET 'external state2'"/>
+		<if>
+			<equals>
+				<trigger query="FROM trigger GET 'magnet sensor1'"/>
+				<value>1</value>
+			</equals>
+		</if>
+	</transition>
+	<end>
+		<output>
+			<query>FROM state GET 'some output'</query>
+			<active>0</active>
+		</output>
+		<trigger>
+			<query>FROM state GET 'state1 timeout'</query>
+			<active>0</active>
+		</trigger>
+	</end>
+</state>
+<state>
+	<alias>external state1</alias>
+	<entry>false</entry>
+	<origin>false</origin>
+	<external>false</external>
+</state>
+<state>
+	<alias>external state2</alias>
+	<entry>false</entry>
+	<origin>false</origin>
+	<external>false</external>
+</state>
+</machine>

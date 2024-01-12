@@ -31,11 +31,19 @@ public enum NodeType {
 
   OUTPUT(Rules.OUTPUT),
 
+  ACTIVE(Rules.ACTIVE),
+
+  TIME(Rules.TIME),
+
+  RUNNING(Rules.RUNNING),
+
   ORIGIN(Rules.ORIGIN),
 
   ENTRY(Rules.ENTRY),
 
   BEGIN(Rules.BEGIN),
+
+  END(Rules.END),
 
   TRANSITION(Rules.TRANSITION),
 

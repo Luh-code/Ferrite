@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
 // A regex-based XML Tokenizer with builtin syntax checking
 public class XMLTokenizer {
   private XMLToken[] tokens;
-  private Pattern xmlPattern = Pattern.compile("<[^>]+>|[^<]+");
+  private Pattern xmlPattern = Pattern.compile("<[^?][^>]+>|[^<]+");
   private Pattern xmlAttibutePattern = Pattern.compile("\\s*([^\\s=]*)\\s*(?:=\\s*\"([^\"]*)\"|=\\s*([^\\s>]*))");
 
   public void tokenize(String xmlString) throws SerializationTokenMissingClosingTagException, SerializationTokenMissingOpeningTagException, SerializationMismatchedAttributeValueCountException {
@@ -59,18 +59,17 @@ public class XMLTokenizer {
 
       char secondLastChar = part.charAt(part.length() - 2);
       if (part.charAt(1) != '/') {
-        // otherwise it must be an opening tag, push to openTokens and add to token list
+        // must be an opening tag, push to openTokens and add to token list
         XMLOpeningToken tempToken = new XMLOpeningToken(tag, openTokens.size());
         openTokens.push(tempToken);
         temp.add(tempToken);
 
         // search for attributes and add them to the Token list
         int firstSpace = strippedPart.indexOf(" ");
-        if(firstSpace == -1) {
-          continue;
+        if(firstSpace != -1) {
+          XMLAttributeToken[] attributes = extractAttributes(strippedPart.substring(firstSpace), tempToken);
+          temp.addAll(Arrays.stream(attributes).toList());
         }
-        XMLAttributeToken[] attributes = extractAttributes(strippedPart.substring(firstSpace), tempToken);
-        temp.addAll(Arrays.stream(attributes).toList());
 
         if (secondLastChar != '/') {
           continue;

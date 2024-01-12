@@ -7,7 +7,7 @@
     <machine>
         <external>true</external>
         <alias>TestMachine</alias>
-        <path>[path to machine XML here]</path>
+        <path>src/TestMachine.xml</path>
     </machine>
     <machine>
         <major>1</major>

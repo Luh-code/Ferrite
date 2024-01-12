@@ -1,10 +1,9 @@
 package com.ferrite.dom.exceptions;
 
-import com.ferrite.dom.Node;
-import com.ferrite.dom.NodeVariant;
+import com.ferrite.dom.XMLNode;
 
 public class DOMXMLParsingDuplicateVariantException extends DOMXMLException {
-  public DOMXMLParsingDuplicateVariantException(Node node) {
+  public DOMXMLParsingDuplicateVariantException(XMLNode node) {
     super(String.format("Tried to set variant of node '%s' multiple times during parsing", node.toString()));
   }
 }
