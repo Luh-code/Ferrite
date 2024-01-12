@@ -19,12 +19,14 @@
         <alias>TM1ext1-TM2ts0</alias>
         <entry>false</entry>
         <origin>false</origin>
+        <proxy>true</proxy>
         <state query="FROM machine GET 'TestMachine2' GET 'test state0'"/>
     </state>
     <state>
         <alias>0</alias>
         <entry>true</entry>
         <origin>true</origin>
+        <proxy>true</proxy>
         <state query="FROM machine GET 'TestMachine' GET 'state0'"/>
     </state>
 </system>

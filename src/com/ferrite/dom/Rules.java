@@ -46,8 +46,10 @@ enum Rules {
           new NodeSettings(NodeType.BEGIN),
           new NodeSettings(NodeType.END),
           new NodeSettings(NodeType.TRANSITION).setArrayable(),
+          new NodeSettings(NodeType.PROXY),
           new NodeSettings(NodeType.STATE)
   }),
+  PROXY(BOOLEAN, () -> new Rules[] { GENERAL }, () -> new NodeSettings[] {}),
   TRIGGER(NONE,() -> new Rules[]{ GENERAL, ALIASED }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TYPE),
           new NodeSettings(NodeType.CUSTOM).setArrayable(),

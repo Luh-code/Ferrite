@@ -27,6 +27,8 @@ public enum NodeType {
 
   STATE(Rules.STATE),
 
+  PROXY(Rules.PROXY),
+
   TRIGGER(Rules.TRIGGER),
 
   OUTPUT(Rules.OUTPUT),
