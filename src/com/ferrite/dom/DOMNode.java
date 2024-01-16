@@ -8,17 +8,17 @@ import com.ferrite.dom.exceptions.DOMNodeRuleTypeViolationException;
 import java.util.ArrayList;
 import java.util.Optional;
 
-public class XMLNode {
-  private ArrayList<XMLNode> edges;
+public class DOMNode {
+  private ArrayList<DOMNode> edges;
   private NodeType type;
   private NodeVariant variant;
 
-  public XMLNode(NodeType type) {
+  public DOMNode(NodeType type) {
     this.type = type;
     this.edges = new ArrayList<>();
   }
 
-  public void addEdge(XMLNode n) throws DOMNodeEdgeDuplicationException, DOMNodeRuleTypeViolationException, DOMNodeRulePluralityViolationException, DOMNodeRuleNonExistentException {
+  public void addEdge(DOMNode n) throws DOMNodeEdgeDuplicationException, DOMNodeRuleTypeViolationException, DOMNodeRulePluralityViolationException, DOMNodeRuleNonExistentException {
     if (this.edges.contains(n)) {
       throw new DOMNodeEdgeDuplicationException(this, n);
     }
@@ -26,7 +26,7 @@ public class XMLNode {
       throw new DOMNodeRuleTypeViolationException(this, n);
     }
     if (!this.type.checkPlurality(n.getType())) {
-      for (XMLNode vertex : edges) {
+      for (DOMNode vertex : edges) {
         if (vertex.getType() == n.getType()) {
           throw new DOMNodeRulePluralityViolationException(this, n);
         }
@@ -35,8 +35,8 @@ public class XMLNode {
     edges.add(n);
   }
 
-  public Optional<XMLNode> getEdge(NodeType type) {
-    for (XMLNode edge : this.edges) {
+  public Optional<DOMNode> getEdge(NodeType type) {
+    for (DOMNode edge : this.edges) {
       if (edge.getType() == type) {
         return Optional.of(edge);
       }
@@ -44,9 +44,9 @@ public class XMLNode {
     return Optional.empty();
   }
 
-  public void replaceEdges(XMLNode newNode) throws DOMNodeEdgeDuplicationException, DOMNodeRuleNonExistentException, DOMNodeRuleTypeViolationException, DOMNodeRulePluralityViolationException {
+  public void replaceEdges(DOMNode newNode) throws DOMNodeEdgeDuplicationException, DOMNodeRuleNonExistentException, DOMNodeRuleTypeViolationException, DOMNodeRulePluralityViolationException {
     this.edges.clear();
-    for (XMLNode n : newNode.getEdges()) {
+    for (DOMNode n : newNode.getEdges()) {
       addEdge(n);
     }
   }
@@ -63,7 +63,7 @@ public class XMLNode {
     this.variant = variant;
   }
 
-  public ArrayList<XMLNode> getEdges() {
+  public ArrayList<DOMNode> getEdges() {
     return edges;
   }
 }

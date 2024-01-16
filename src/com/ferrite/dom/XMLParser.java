@@ -10,16 +10,16 @@ import java.util.Stack;
 import java.util.function.BiConsumer;
 
 public class XMLParser {
-  private XMLNode root;
-  private Map<XMLToken, XMLNode> pairing = new HashMap<>();
-  private Map<XMLNode, XMLToken> revPairing = new HashMap<>();
+  private DOMNode root;
+  private Map<XMLToken, DOMNode> pairing = new HashMap<>();
+  private Map<DOMNode, XMLToken> revPairing = new HashMap<>();
   public void parseNodes(XMLToken[] xmlTokens) throws DOMXMLParsingIllegalTokenTypeException, DOMXMLParsingIllegalTagException, DOMNodeEdgeDuplicationException, DOMNodeRuleNonExistentException, DOMNodeRuleTypeViolationException, DOMNodeRulePluralityViolationException, DOMXMLParsingMissingClosingTokenException, DOMXMLParsingMissingPairingException, DOMXMLParsingMissingOpeningTokenException, DOMXMLParsingNullTokenException, DOMXMLParsingDuplicateVariantException, DOMXMLParsingIllegalNoneTypeVariantSettingException, DOMXMLParsingMismatchedVariantTypeException {
-    BiConsumer<XMLToken, XMLNode> pairingAdder = (XMLToken token, XMLNode node) -> {
+    BiConsumer<XMLToken, DOMNode> pairingAdder = (XMLToken token, DOMNode node) -> {
       pairing.put(token, node);
       revPairing.put(node, token);
     };
     // The top node of this stack is the 'current' node
-    Stack<XMLNode> nodeStack = new Stack<>();
+    Stack<DOMNode> nodeStack = new Stack<>();
     nodeStack.push(null); // push null to make sure, that the current node is not set
     for (XMLToken token : xmlTokens) {
       if (token == null) {
@@ -28,7 +28,7 @@ public class XMLParser {
       // Check token type
       switch (token) {
         case XMLOpeningToken xmlOpeningToken -> {
-          XMLNode temp = new XMLNode(getNodeType(xmlOpeningToken.getData())); // Create node from token
+          DOMNode temp = new DOMNode(getNodeType(xmlOpeningToken.getData())); // Create node from token
 
           pairingAdder.accept(xmlOpeningToken, temp); // add to pairings
 
@@ -73,7 +73,7 @@ public class XMLParser {
           }
         }
         case XMLAttributeToken xmlAttributeToken -> {
-          XMLNode temp = new XMLNode(getNodeType(xmlAttributeToken.getData())); // Create node from tag
+          DOMNode temp = new DOMNode(getNodeType(xmlAttributeToken.getData())); // Create node from tag
           pairingAdder.accept(xmlAttributeToken, temp);
           // Throw if current is null
           if (nodeStack.peek() == null) {
@@ -150,11 +150,11 @@ public class XMLParser {
     return match;
   }
 
-  public Set<XMLNode> getNodes() {
+  public Set<DOMNode> getNodes() {
     return this.revPairing.keySet();
   }
 
-  public XMLNode getRoot() {
+  public DOMNode getRoot() {
     return root;
   }
 }

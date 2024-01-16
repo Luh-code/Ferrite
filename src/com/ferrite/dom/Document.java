@@ -1,12 +1,8 @@
 package com.ferrite.dom;
 
 import com.ferrite.FerriteException;
-import com.ferrite.dom.exceptions.*;
 import com.ferrite.serialization.XMLToken;
 import com.ferrite.serialization.XMLTokenizer;
-import com.ferrite.serialization.exceptions.SerializationMismatchedAttributeValueCountException;
-import com.ferrite.serialization.exceptions.SerializationTokenMissingClosingTagException;
-import com.ferrite.serialization.exceptions.SerializationTokenMissingOpeningTagException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,13 +12,13 @@ import java.util.Optional;
 import java.util.Set;
 
 public class Document {
-  private XMLNode root;
+  private DOMNode root;
 
   public void deserializeDocument(String filename) throws FerriteException {
     this.root = deserialize(filename);
   }
 
-  private XMLNode deserialize(String filename) throws FerriteException {
+  private DOMNode deserialize(String filename) throws FerriteException {
     String xmlText;
     try {
       xmlText = new String(Files.readAllBytes(Paths.get(filename)), StandardCharsets.UTF_8);
@@ -41,10 +37,10 @@ public class Document {
     return xmlParser.getRoot();
   }
 
-  private void importAll(Set<XMLNode> nodes) throws FerriteException {
-    for (XMLNode node : nodes) { // for every node
+  private void importAll(Set<DOMNode> nodes) throws FerriteException {
+    for (DOMNode node : nodes) { // for every node
       // Check if external
-      Optional<XMLNode> external = node.getEdge(NodeType.EXTERNAL);
+      Optional<DOMNode> external = node.getEdge(NodeType.EXTERNAL);
       if (external.isEmpty()) {
         continue;
       }
@@ -54,7 +50,7 @@ public class Document {
       }
 
       // If yes, check path
-      Optional<XMLNode> path = node.getEdge(NodeType.PATH);
+      Optional<DOMNode> path = node.getEdge(NodeType.PATH);
       if (path.isEmpty()) {
         continue;
       }
@@ -64,7 +60,7 @@ public class Document {
       }
 
       // If path exists, deserialize document at path and add node, recursively
-      XMLNode subroot = deserialize(pathVar.getString());
+      DOMNode subroot = deserialize(pathVar.getString());
       node.replaceEdges(subroot);
     }
   }
