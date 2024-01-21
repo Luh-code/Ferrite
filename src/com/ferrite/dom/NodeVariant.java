@@ -17,7 +17,7 @@ public class NodeVariant {
   public NodeVariant(int value) {
     this.variant = value;
     try {
-      this.type = getType();
+      this.type = computeType();
     } catch (DOMNodeVariantIllegalVariantTypeException e) {
       throw new RuntimeException(e);
     }
@@ -49,7 +49,7 @@ public class NodeVariant {
   public NodeVariant(float value) {
     this.variant = value;
     try {
-      this.type = getType();
+      this.type = computeType();
     } catch (DOMNodeVariantIllegalVariantTypeException e) {
       throw new RuntimeException(e);
     }
@@ -81,7 +81,7 @@ public class NodeVariant {
   public NodeVariant(String value) {
     this.variant = value;
     try {
-      this.type = getType();
+      this.type = computeType();
     } catch (DOMNodeVariantIllegalVariantTypeException e) {
       throw new RuntimeException(e);
     }
@@ -121,7 +121,7 @@ public class NodeVariant {
   public NodeVariant(boolean value) {
     this.variant = value;
     try {
-      this.type = getType();
+      this.type = computeType();
     } catch (DOMNodeVariantIllegalVariantTypeException e) {
       throw new RuntimeException(e);
     }
@@ -161,13 +161,13 @@ public class NodeVariant {
   public NodeVariant() {
     this.variant = null;
     try {
-      this.type = getType();
+      this.type = computeType();
     } catch (DOMNodeVariantIllegalVariantTypeException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private NodeVariantType getType() throws DOMNodeVariantIllegalVariantTypeException {
+  private NodeVariantType computeType() throws DOMNodeVariantIllegalVariantTypeException {
     switch (variant) {
       case null -> {
         return NodeVariantType.NONE;
@@ -188,6 +188,10 @@ public class NodeVariant {
         throw new DOMNodeVariantIllegalVariantTypeException(variant.getClass());
       }
     }
+  }
+
+  public NodeVariantType getType() {
+    return this.type;
   }
 
   public int getInt() throws DOMNodeVariantIllegalVariantTypeException, DOMNodeVariantTypeMismatchException {

@@ -4,6 +4,7 @@ import com.ferrite.dom.exceptions.DOMNodeEdgeDuplicationException;
 import com.ferrite.dom.exceptions.DOMNodeRuleNonExistentException;
 import com.ferrite.dom.exceptions.DOMNodeRulePluralityViolationException;
 import com.ferrite.dom.exceptions.DOMNodeRuleTypeViolationException;
+import com.ferrite.dom.treewalker.instructions.TreeWalkerInstruction;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -65,5 +66,9 @@ public class DOMNode {
 
   public ArrayList<DOMNode> getEdges() {
     return edges;
+  }
+
+  public TreeWalkerInstruction[] getInstructions() {
+    return this.type.getInstructions();
   }
 }

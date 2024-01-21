@@ -46,9 +46,9 @@ public class QueryEngine {
       throwInvalidSyntaxException(0, "Bounding command");
     }*/
 
-    this.selected = this.currentNode.getEdges();
+    this.selected = (ArrayList<DOMNode>) this.currentNode.getEdges().clone();
 
-    while (currentToken != this.tokens.length-1) {
+    while (currentToken < this.tokens.length-1) {
       switch (tokens[currentToken].toUpperCase()) {
         case "FROM" -> {
           fromToken();
@@ -60,26 +60,27 @@ public class QueryEngine {
           throwInvalidSyntaxException(currentToken, "FROM or GET");
         }
       }
+      ++currentToken;
     }
   }
 
-  private void ensureTokenCount(int furtherReqTokens) throws QueryInvalidSyntaxException {
-    if (this.currentToken + furtherReqTokens >= this.selected.size()) {
-      throwInvalidSyntaxException(this.currentToken+1, "identifier");
+  private void ensureTokenCount(int furtherReqTokens, String message) throws QueryInvalidSyntaxException {
+    if (this.currentToken + furtherReqTokens >= this.tokens.length) {
+      throwInvalidSyntaxException(this.currentToken+1, message);
     }
   }
 
   private void fromToken() throws QueryInvalidSyntaxException, QueryEmptyResultException {
-    ensureTokenCount(1);
+    ensureTokenCount(1, "[identifier]");
     ++currentToken;
-    this.selected.removeIf(node -> !node.getType().toString().equals(this.tokens[currentToken]));
+    this.selected.removeIf(node -> node.getType() != NodeType.fromString(this.tokens[currentToken]));
     if (this.selected.isEmpty()) {
       throw new QueryEmptyResultException(this.query);
     }
   }
 
   private void getToken() throws QueryInvalidSyntaxException, QueryEmptyResultException {
-    ensureTokenCount(3);
+    ensureTokenCount(3, "[type][==/!=/</>][value]");
     String type = this.tokens[++currentToken];
     String operator = this.tokens[++currentToken];
     String value = this.tokens[++currentToken];

@@ -1,42 +1,39 @@
 package com.ferrite.dom.treewalker;
 
 import com.ferrite.dom.DOMNode;
-import com.ferrite.dom.NodeType;
-import com.ferrite.dom.NodeVariant;
-import com.ferrite.dom.exceptions.TreeWalker.TreeWalkerNoOriginStateFoundException;
+import com.ferrite.dom.treewalker.instructions.TreeWalkerGetInstruction;
 import com.ferrite.dom.treewalker.instructions.TreeWalkerInstruction;
 
 import java.util.ArrayDeque;
 
-public class TreeWalker {
+public class TreeWalker implements Runnable {
   private DOMNode position;
   private ArrayDeque<TreeWalkerInstruction> instructions;
-  private boolean head;
 
-  private TreeWalker(DOMNode position, boolean head) {
-    this.position = position;
-    this.head = head;
+  public TreeWalker() {
+    this.instructions = new ArrayDeque<>();
   }
 
-  public static TreeWalker dispatch(DOMNode root) throws TreeWalkerNoOriginStateFoundException {
-    OUTER:
-    for (DOMNode node : root.getEdges()) {
-      if (node.getType() != NodeType.STATE) {
-        continue;
-      }
-      for (DOMNode node1 : node.getEdges()) {
-        if (node1.getType() != NodeType.ORIGIN) {
-          continue;
-        }
-        NodeVariant value = node1.getVariant();
-        if (value == null) {
-          break OUTER;
-        }
-        return new TreeWalker(node, true);
-      }
-    }
+  public void dispatch(DOMNode root) {
+    this.position = root;
+    addInstruction(new TreeWalkerGetInstruction());
+    Thread t = new Thread(this);
+    t.start();
+  }
 
-    throw new TreeWalkerNoOriginStateFoundException(root.getType().name());
+  private void loop() {
+    while (!instructions.isEmpty()) {
+      executeInstruction();
+    }
+  }
+
+  private void executeInstruction() {
+    print(String.format("TreeWalker '%s': executing %s", this, this.instructions.peek().getClass().getTypeName()));
+    this.instructions.pop().act(this);
+  }
+
+  public void print(String message) {
+    System.out.printf("TreeWalker '%s': %s\n", this, message);
   }
 
   public void addInstruction(TreeWalkerInstruction instruction) {
@@ -49,5 +46,11 @@ public class TreeWalker {
 
   public void setPosition(DOMNode position) {
     this.position = position;
+  }
+
+  @Override
+  public void run() {
+    loop();
+    print("ended execution");
   }
 }

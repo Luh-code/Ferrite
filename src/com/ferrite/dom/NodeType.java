@@ -2,6 +2,7 @@ package com.ferrite.dom;
 
 import com.ferrite.dom.exceptions.DOMNodeRuleNonExistentException;
 import com.ferrite.dom.exceptions.DOMNodeRulePermittedChildDuplicationException;
+import com.ferrite.dom.treewalker.instructions.TreeWalkerInstruction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -119,5 +120,9 @@ public enum NodeType {
       }
     }
     return null;
+  }
+
+  public TreeWalkerInstruction[] getInstructions() {
+    return this.rules.getInstructions();
   }
 }

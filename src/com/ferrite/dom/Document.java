@@ -1,6 +1,7 @@
 package com.ferrite.dom;
 
 import com.ferrite.FerriteException;
+import com.ferrite.dom.treewalker.TreeWalker;
 import com.ferrite.serialization.XMLToken;
 import com.ferrite.serialization.XMLTokenizer;
 
@@ -37,6 +38,10 @@ public class Document {
     return xmlParser.getRoot();
   }
 
+  public DOMNode getRoot() {
+    return root;
+  }
+
   private void importAll(Set<DOMNode> nodes) throws FerriteException {
     for (DOMNode node : nodes) { // for every node
       // Check if external
@@ -63,6 +68,8 @@ public class Document {
       DOMNode subroot = deserialize(pathVar.getString());
       node.replaceEdges(subroot);
     }
+
+
   }
 
   public static void main(String[] args) {
@@ -72,5 +79,7 @@ public class Document {
     } catch (FerriteException e) {
       throw new RuntimeException(e);
     }
+    TreeWalker tw = new TreeWalker();
+    tw.dispatch(d.getRoot());
   }
 }
