@@ -18,7 +18,7 @@ public class TreeWalker {
     this.head = head;
   }
 
-  public static TreeWalker dispatchOnOrigin(DOMNode root) throws TreeWalkerNoOriginStateFoundException {
+  public static TreeWalker dispatch(DOMNode root) throws TreeWalkerNoOriginStateFoundException {
     OUTER:
     for (DOMNode node : root.getEdges()) {
       if (node.getType() != NodeType.STATE) {
@@ -37,10 +37,6 @@ public class TreeWalker {
     }
 
     throw new TreeWalkerNoOriginStateFoundException(root.getType().name());
-  }
-
-  public static TreeWalker customDispatch(DOMNode root) {
-    return new TreeWalker(root, false);
   }
 
   public void addInstruction(TreeWalkerInstruction instruction) {
