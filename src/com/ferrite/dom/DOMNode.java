@@ -68,7 +68,7 @@ public class DOMNode {
     return edges;
   }
 
-  public TreeWalkerInstruction[] getInstructions() {
-    return this.type.getInstructions();
+  public TreeWalkerInstruction[] getInstructions(DOMNode node) {
+    return this.type.getInstructions(node);
   }
 }

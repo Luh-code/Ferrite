@@ -122,7 +122,12 @@ public enum NodeType {
     return null;
   }
 
-  public TreeWalkerInstruction[] getInstructions() {
-    return this.rules.getInstructions();
+  public TreeWalkerInstruction[] getInstructions(DOMNode node) {
+    ArrayList<TreeWalkerInstruction> instructions = new ArrayList<>();
+    for (Rules r : this.rules.getExtensions().get()) {
+      instructions.addAll(List.of(r.applyInstructions(node)));
+    }
+    instructions.addAll(List.of(this.rules.applyInstructions(node)));
+    return instructions.toArray(TreeWalkerInstruction[]::new);
   }
 }
