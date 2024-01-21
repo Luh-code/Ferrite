@@ -98,11 +98,9 @@
 	<alias>external state1</alias>
 	<entry>false</entry>
 	<origin>false</origin>
-	<proxy>true</proxy>
 </state>
 <state entry="false">
 	<alias>external state2</alias>
 	<origin>false</origin>
-	<proxy>false</proxy>
 </state>
 </machine>

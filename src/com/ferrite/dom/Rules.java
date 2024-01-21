@@ -1,11 +1,11 @@
 package com.ferrite.dom;
 
-import com.ferrite.dom.treewalker.instructions.TreeWalkerDemoInstruction;
-import com.ferrite.dom.treewalker.instructions.TreeWalkerGetInstruction;
-import com.ferrite.dom.treewalker.instructions.TreeWalkerInstruction;
-import com.ferrite.dom.treewalker.instructions.TreeWalkerSearchInstruction;
-import org.w3c.dom.Node;
+import com.ferrite.dom.exceptions.TreeWalker.TreeWalkerException;
+import com.ferrite.dom.exceptions.TreeWalker.TreeWalkerNodeNotFoundException;
+import com.ferrite.dom.treewalker.instructions.*;
 
+import java.util.ArrayList;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -33,8 +33,8 @@ enum Rules {
           new NodeSettings(NodeType.MACHINE).setArrayable(),
           new NodeSettings(NodeType.STATE).setArrayable()
   }, (DOMNode node) -> new TreeWalkerInstruction[]{
-          new TreeWalkerSearchInstruction("FROM state GET 'origin'=='true'"),
-          new TreeWalkerGetInstruction()
+          new TreeWalkerSearchInstruction("FROM state GET 'origin'=='true'", false),
+          new TreeWalkerGetInstruction(false)
   }),
   FERRITE_MAJOR(INTEGER,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}),
   FERRITE_MINOR(INTEGER,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}),
@@ -54,12 +54,51 @@ enum Rules {
           new NodeSettings(NodeType.BEGIN),
           new NodeSettings(NodeType.END),
           new NodeSettings(NodeType.TRANSITION).setArrayable(),
-          new NodeSettings(NodeType.PROXY),
           new NodeSettings(NodeType.STATE)
-  }, (DOMNode node) -> new TreeWalkerInstruction[]{
-          new TreeWalkerDemoInstruction("Found origin!!!")
+  }, (DOMNode node) -> {
+    ArrayList<TreeWalkerInstruction> instructions = new ArrayList<>();
+
+    // go to begin
+    Optional<DOMNode> begin = node.getEdge(NodeType.BEGIN);
+    if (begin.isEmpty()) {
+      throw new RuntimeException("State needs to have a child of type BEGIN");
+    }
+    instructions.add(new TreeWalkerMoveInstruction(begin.get(), 0, false));
+    instructions.add(new TreeWalkerGetInstruction(false));
+    // begin is expected to move up itself
+
+    // LATE INSTRUCTIONS (inverted ORDER )
+
+    // go to end
+    Optional<DOMNode> end = node.getEdge(NodeType.END);
+    if (end.isEmpty()) {
+      throw new RuntimeException("State needs to have a child of type END");
+    }
+    instructions.add(new TreeWalkerGetInstruction(true));
+    instructions.add(new TreeWalkerMoveInstruction(end.get(), 0, true));
+    // end is expected to move up itself
+
+    /*Optional<DOMNode> state = node.getEdge(NodeType.STATE);
+    if (state.isEmpty()) {
+      throw new RuntimeException("State needs to have a child of type STATE");
+    }
+    instructions.add(new TreeWalkerMoveInstruction(state.get(), 0, true));
+    instructions.add(new TreeWalkerGetInstruction(true));*/
+
+    ArrayList<TreeWalkerInstruction> transitonLoopInstructuions = new ArrayList<>();
+
+    ArrayList<DOMNode> transitions = node.getEdges(NodeType.TRANSITION);
+    for (DOMNode transition : transitions) {
+      transitonLoopInstructuions.add(new TreeWalkerGetInstruction(false));
+      transitonLoopInstructuions.add(new TreeWalkerMoveInstruction(transition, 0, false));
+      // transition is expected to move up itself
+    }
+
+    instructions.add(new TreeWalkerLoopInstruction(transitonLoopInstructuions.toArray(TreeWalkerInstruction[]::new), node));
+
+
+    return instructions.toArray(TreeWalkerInstruction[]::new);
   }),
-  PROXY(BOOLEAN, () -> new Rules[] { GENERAL }, () -> new NodeSettings[] {}, (DOMNode node) -> new TreeWalkerInstruction[]{}),
   TRIGGER(NONE,() -> new Rules[]{ GENERAL, ALIASED }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TYPE),
           new NodeSettings(NodeType.CUSTOM).setArrayable(),
@@ -83,7 +122,10 @@ enum Rules {
   BEGIN(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
         new NodeSettings(NodeType.TRIGGER).setArrayable(),
         new NodeSettings(NodeType.OUTPUT).setArrayable(),
-  }, (DOMNode node) -> new TreeWalkerInstruction[]{}),
+  }, (DOMNode node) -> new TreeWalkerInstruction[]{
+          new TreeWalkerDemoInstruction("Reached Begin!!!!"),
+          new TreeWalkerMoveInstruction(null, 1, false)
+  }),
   END(NONE, () -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
         new NodeSettings(NodeType.TRIGGER).setArrayable(),
         new NodeSettings(NodeType.OUTPUT).setArrayable(),
@@ -96,7 +138,8 @@ enum Rules {
   IF(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.EQUALS).setArrayable(),
           new NodeSettings(NodeType.LESSER).setArrayable(),
-          new NodeSettings(NodeType.GREATER).setArrayable()
+          new NodeSettings(NodeType.GREATER).setArrayable(),
+          new NodeSettings(NodeType.VALUE)
   }, (DOMNode node) -> new TreeWalkerInstruction[]{}),
   EQUALS(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TRIGGER),
@@ -140,5 +183,9 @@ enum Rules {
 
   public TreeWalkerInstruction[] applyInstructions(DOMNode node) {
     return this.instructions.apply(node);
+  }
+
+  public static void throwException(TreeWalkerException exception) throws TreeWalkerException {
+    throw exception;
   }
 }

@@ -45,6 +45,16 @@ public class DOMNode {
     return Optional.empty();
   }
 
+  public ArrayList<DOMNode> getEdges(NodeType type) {
+    ArrayList<DOMNode> nodes = new ArrayList<>();
+    for (DOMNode edge : this.edges) {
+      if (edge.getType() == type) {
+        nodes.add(edge);
+      }
+    }
+    return nodes;
+  }
+
   public void replaceEdges(DOMNode newNode) throws DOMNodeEdgeDuplicationException, DOMNodeRuleNonExistentException, DOMNodeRuleTypeViolationException, DOMNodeRulePluralityViolationException {
     this.edges.clear();
     for (DOMNode n : newNode.getEdges()) {

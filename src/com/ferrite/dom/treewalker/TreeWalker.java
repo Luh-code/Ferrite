@@ -5,31 +5,44 @@ import com.ferrite.dom.treewalker.instructions.TreeWalkerGetInstruction;
 import com.ferrite.dom.treewalker.instructions.TreeWalkerInstruction;
 
 import java.util.ArrayDeque;
+import java.util.Stack;
 
 public class TreeWalker implements Runnable {
   private DOMNode position;
   private ArrayDeque<TreeWalkerInstruction> instructions;
+  private ArrayDeque<TreeWalkerInstruction> lateInstructions;
+  private LimitedStack<DOMNode> past;
 
   public TreeWalker() {
     this.instructions = new ArrayDeque<>();
+    this.lateInstructions = new ArrayDeque<>();
+    this.past = new LimitedStack<>(5);
   }
 
   public void dispatch(DOMNode root) {
     this.position = root;
-    addInstruction(new TreeWalkerGetInstruction());
+    addInstruction(new TreeWalkerGetInstruction(false));
     Thread t = new Thread(this);
     t.start();
   }
 
   private void loop() {
-    while (!instructions.isEmpty()) {
-      executeInstruction();
+    while (!instructions.isEmpty() || !lateInstructions.isEmpty()) {
+      if (!instructions.isEmpty()) {
+        executeInstruction();
+      } else {
+        executeLateInstruction();
+      }
     }
   }
 
   private void executeInstruction() {
-    print(String.format("TreeWalker '%s': executing %s", this, this.instructions.peek().getClass().getTypeName()));
+    print(String.format("executing %s", this.instructions.peek().getClass().getTypeName()));
     this.instructions.pop().act(this);
+  }
+  private void executeLateInstruction() {
+    print(String.format("executing %s (late)", this.lateInstructions.peek().getClass().getTypeName()));
+    this.lateInstructions.pop().act(this);
   }
 
   public void print(String message) {
@@ -40,11 +53,24 @@ public class TreeWalker implements Runnable {
     this.instructions.push(instruction);
   }
 
+  public void addLateInstruction(TreeWalkerInstruction instruction) {
+    this.lateInstructions.push(instruction);
+  }
+
+  public void sortedAddInstruction(TreeWalkerInstruction instruction) {
+    if (instruction.getLate()) {
+      addLateInstruction(instruction);
+      return;
+    }
+    addInstruction(instruction);
+  }
+
   public DOMNode getPosition() {
     return position;
   }
 
   public void setPosition(DOMNode position) {
+    this.past.push(this.position);
     this.position = position;
   }
 
@@ -52,5 +78,14 @@ public class TreeWalker implements Runnable {
   public void run() {
     loop();
     print("ended execution");
+  }
+  public DOMNode peekPast() {
+    return past.peek();
+  }
+  public DOMNode popPast() {
+    return past.pop();
+  }
+  public int pastSize() {
+    return past.size();
   }
 }

@@ -8,9 +8,11 @@ import com.ferrite.dom.treewalker.TreeWalker;
 
 public class TreeWalkerSearchInstruction implements TreeWalkerInstruction {
   private String query;
+  private boolean late;
 
-  public TreeWalkerSearchInstruction(String query) {
+  public TreeWalkerSearchInstruction(String query, boolean late) {
     this.query = query;
+    this.late = late;
   }
 
   @Override
@@ -23,5 +25,10 @@ public class TreeWalkerSearchInstruction implements TreeWalkerInstruction {
     }
     DOMNode result = qe.getResult();
     walker.setPosition(result);
+  }
+
+  @Override
+  public boolean getLate() {
+    return this.late;
   }
 }
