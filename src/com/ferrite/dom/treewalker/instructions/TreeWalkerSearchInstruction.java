@@ -8,10 +8,12 @@ import com.ferrite.dom.treewalker.TreeWalker;
 
 public class TreeWalkerSearchInstruction implements TreeWalkerInstruction {
   private String query;
+  private boolean root;
   private boolean late;
 
-  public TreeWalkerSearchInstruction(String query, boolean late) {
+  public TreeWalkerSearchInstruction(String query, boolean root, boolean late) {
     this.query = query;
+    this.root = root;
     this.late = late;
   }
 
@@ -19,7 +21,11 @@ public class TreeWalkerSearchInstruction implements TreeWalkerInstruction {
   public void act(TreeWalker walker) {
     QueryEngine qe = new QueryEngine();
     try {
-      qe.query(walker.getPosition(), this.query);
+      if (!root) {
+        qe.query(walker.getPosition(), this.query);
+      } else {
+        qe.queryTop(walker.getPosition(), this.query);
+      }
     } catch (QueryInvalidSyntaxException | QueryEmptyResultException e) {
       throw new RuntimeException(e);
     }

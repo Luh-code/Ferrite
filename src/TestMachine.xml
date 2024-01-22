@@ -21,6 +21,7 @@
 	<time>5000</time>
 	<running>0</running>
 </trigger>
+<trigger alias="TestTrigger" type="value" value="0"/>
 <output>
 	<alias>some output</alias>
 	<type>digital</type>
@@ -28,11 +29,15 @@
 	<value>0</value>
 </output>
 <state>
-	<alias>some state</alias>
+	<alias>state0</alias>
 	<entry>true</entry>
 	<origin>false</origin>
 	<external>false</external>
-	<begin/>
+	<begin>
+		<trigger query="FROM machine GET 'alias'=='TestMachine' FROM trigger GET 'alias'=='TestTrigger'">
+			<value>21</value>
+		</trigger>
+	</begin>
 	<transition>
 		<state query="FROM state GET 'another state'"/>
 		<if>

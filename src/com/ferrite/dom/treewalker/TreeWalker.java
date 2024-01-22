@@ -56,6 +56,9 @@ public class TreeWalker implements Runnable {
   public void addLateInstruction(TreeWalkerInstruction instruction) {
     this.lateInstructions.push(instruction);
   }
+  public void addLateEndInstruction(TreeWalkerInstruction instruction) {
+    this.lateInstructions.addLast(instruction);
+  }
 
   public void sortedAddInstruction(TreeWalkerInstruction instruction) {
     if (instruction.getLate()) {
@@ -63,6 +66,22 @@ public class TreeWalker implements Runnable {
       return;
     }
     addInstruction(instruction);
+  }
+
+  public TreeWalkerInstruction popInstruction() {
+    return this.instructions.pop();
+  }
+
+  public TreeWalkerInstruction popLateInstruction() {
+    return this.lateInstructions.pop();
+  }
+
+  public int instructionCount() {
+    return this.instructions.size();
+  }
+
+  public int lateInstructionCount() {
+    return this.lateInstructions.size();
   }
 
   public DOMNode getPosition() {

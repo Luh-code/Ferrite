@@ -1,9 +1,15 @@
 package com.ferrite.dom;
 
+import com.ferrite.dom.exceptions.DOMNodeVariantTypeMismatchException;
 import com.ferrite.dom.exceptions.TreeWalker.TreeWalkerException;
 import com.ferrite.dom.exceptions.TreeWalker.TreeWalkerNodeNotFoundException;
+import com.ferrite.dom.exceptions.query.QueryEmptyResultException;
+import com.ferrite.dom.exceptions.query.QueryInvalidSyntaxException;
+import com.ferrite.dom.query.QueryEngine;
 import com.ferrite.dom.treewalker.instructions.*;
+import org.w3c.dom.Node;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.function.Function;
@@ -33,7 +39,7 @@ enum Rules {
           new NodeSettings(NodeType.MACHINE).setArrayable(),
           new NodeSettings(NodeType.STATE).setArrayable()
   }, (DOMNode node) -> new TreeWalkerInstruction[]{
-          new TreeWalkerSearchInstruction("FROM state GET 'origin'=='true'", false),
+          new TreeWalkerSearchInstruction("FROM state GET 'origin'=='true'", false, false),
           new TreeWalkerGetInstruction(false)
   }),
   FERRITE_MAJOR(INTEGER,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}),
@@ -69,14 +75,14 @@ enum Rules {
 
     // LATE INSTRUCTIONS (inverted ORDER )
 
-    // go to end
+    /*// go to end
     Optional<DOMNode> end = node.getEdge(NodeType.END);
     if (end.isEmpty()) {
       throw new RuntimeException("State needs to have a child of type END");
     }
     instructions.add(new TreeWalkerGetInstruction(true));
     instructions.add(new TreeWalkerMoveInstruction(end.get(), 0, true));
-    // end is expected to move up itself
+    // end is expected to move up itself*/
 
     /*Optional<DOMNode> state = node.getEdge(NodeType.STATE);
     if (state.isEmpty()) {
@@ -104,7 +110,8 @@ enum Rules {
           new NodeSettings(NodeType.CUSTOM).setArrayable(),
           new NodeSettings(NodeType.ACTIVE),
           new NodeSettings(NodeType.TIME),
-          new NodeSettings(NodeType.RUNNING)
+          new NodeSettings(NodeType.RUNNING),
+          new NodeSettings(NodeType.VALUE)
   }, (DOMNode node) -> new TreeWalkerInstruction[]{}),
   OUTPUT(NONE,() -> new Rules[]{ GENERAL, ALIASED }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TYPE),
@@ -122,25 +129,140 @@ enum Rules {
   BEGIN(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
         new NodeSettings(NodeType.TRIGGER).setArrayable(),
         new NodeSettings(NodeType.OUTPUT).setArrayable(),
-  }, (DOMNode node) -> new TreeWalkerInstruction[]{
-          new TreeWalkerDemoInstruction("Reached Begin!!!!"),
-          new TreeWalkerMoveInstruction(null, 1, false)
+  }, (DOMNode node) -> {
+    ArrayList<TreeWalkerInstruction> instructions = new ArrayList<>();
+
+    ArrayList<TreeWalkerInstruction> modificationInstructions = new ArrayList<>();
+    for (DOMNode edge : node.getEdges()) {
+      Optional<DOMNode> query = edge.getEdge(NodeType.QUERY);
+      if (query.isEmpty()) {
+        continue;
+      }
+      QueryEngine qe = new QueryEngine();
+      try {
+        qe.queryTop(node, query.get().getVariant().getString());
+      } catch (QueryInvalidSyntaxException | QueryEmptyResultException | DOMNodeVariantTypeMismatchException e) {
+        throw new RuntimeException(e);
+      }
+      DOMNode queriedNode = qe.getResult();
+
+      ArrayList<DOMNode> allButQuery = edge.getEdges();
+      allButQuery.remove(query.get());
+      modificationInstructions.add(new TreeWalkerMoveInstruction(node, 0, true)); // 3
+      modificationInstructions.add(new TreeWalkerNodeModificationInsrtuction(allButQuery.toArray(DOMNode[]::new), true)); // 2
+      modificationInstructions.add(new TreeWalkerMoveInstruction(queriedNode, 0, true)); // 1
+    }
+
+    instructions.add(new TreeWalkerMoveInstruction(null, 1, true)); // 4
+    instructions.addAll(modificationInstructions);
+
+    return instructions.toArray(TreeWalkerInstruction[]::new);
   }),
   END(NONE, () -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
         new NodeSettings(NodeType.TRIGGER).setArrayable(),
         new NodeSettings(NodeType.OUTPUT).setArrayable(),
-  }, (DOMNode node) -> new TreeWalkerInstruction[]{}),
+  }, (DOMNode node) -> {
+    ArrayList<TreeWalkerInstruction> instructions = new ArrayList<>();
+
+    ArrayList<TreeWalkerInstruction> modificationInstructions = new ArrayList<>();
+    for (DOMNode edge : node.getEdges()) {
+      Optional<DOMNode> query = edge.getEdge(NodeType.QUERY);
+      if (query.isEmpty()) {
+        continue;
+      }
+      QueryEngine qe = new QueryEngine();
+      try {
+        qe.queryTop(node, query.get().getVariant().getString());
+      } catch (QueryInvalidSyntaxException | QueryEmptyResultException | DOMNodeVariantTypeMismatchException e) {
+        throw new RuntimeException(e);
+      }
+      DOMNode queriedNode = qe.getResult();
+
+      ArrayList<DOMNode> allButQuery = edge.getEdges();
+      allButQuery.remove(query.get());
+      modificationInstructions.add(new TreeWalkerMoveInstruction(node, 0, true)); // 3
+      modificationInstructions.add(new TreeWalkerNodeModificationInsrtuction(allButQuery.toArray(DOMNode[]::new), true)); // 2
+      modificationInstructions.add(new TreeWalkerMoveInstruction(queriedNode, 0, true)); // 1
+    }
+
+    instructions.add(new TreeWalkerMoveInstruction(null, 1, true)); // 4
+    instructions.addAll(modificationInstructions);
+
+    return instructions.toArray(TreeWalkerInstruction[]::new);
+  }),
   TRANSITION(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.STATE),
           new NodeSettings(NodeType.IF).setArrayable()
-  }, (DOMNode node) -> new TreeWalkerInstruction[]{}),
+  }, (DOMNode node) -> {
+    ArrayList<TreeWalkerInstruction> instructions = new ArrayList<>();
+
+    // Check conditions via ifs
+    boolean res = false;
+    for (DOMNode edge : node.getEdges()) {
+      TreeWalkerMarkerInstruction temp = null;
+      switch (edge.getType()) {
+        case IF -> {
+          temp = (TreeWalkerMarkerInstruction) edge.getInstructions(edge)[0];
+        }
+      }
+      if (temp != null) {
+        if (temp.getValue()) {
+          res = true;
+          break;
+        }
+      }
+    }
+
+    if (res) {
+      // Transition state into the destination state
+      Optional<DOMNode> state = node.getEdge(NodeType.STATE);
+      if (state.isEmpty()) {
+        throw new RuntimeException("Invalid transition: no destination state defined");
+      } else {
+        Optional<DOMNode> query = state.get().getEdge(NodeType.QUERY);
+        if (query.isEmpty()) {
+          throw new RuntimeException("Invalid transition: the destination state should not be directly defined, but referenced via a query");
+        }
+        try {
+          instructions.add(new TreeWalkerSearchInstruction(query.get().getVariant().getString(), true, true));
+        } catch (DOMNodeVariantTypeMismatchException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }
+
+    instructions.add(new TreeWalkerGetInstruction(true));
+    instructions.add(new TreeWalkerSearchInstruction("FROM end", false, true));
+    instructions.add(new TreeWalkerMoveInstruction(null, 1, true));
+
+    return instructions.toArray(TreeWalkerInstruction[]::new);
+  }),
   TYPE(STRING,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}),
   IF(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.EQUALS).setArrayable(),
           new NodeSettings(NodeType.LESSER).setArrayable(),
           new NodeSettings(NodeType.GREATER).setArrayable(),
           new NodeSettings(NodeType.VALUE)
-  }, (DOMNode node) -> new TreeWalkerInstruction[]{}),
+  }, (DOMNode node) -> {
+    boolean res = false;
+    for (DOMNode edge : node.getEdges()) {
+      TreeWalkerMarkerInstruction temp = null;
+      switch (edge.getType()) {
+        case EQUALS, LESSER, GREATER, VALUE -> {
+          temp = (TreeWalkerMarkerInstruction) edge.getInstructions(edge)[0];
+        }
+      }
+      if (temp != null) {
+        if (!temp.getValue()) {
+          res = false;
+          break;
+        }
+        res = true;
+      }
+    }
+
+    return new TreeWalkerMarkerInstruction[] { new TreeWalkerMarkerInstruction(res) };
+  }),
   EQUALS(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TRIGGER),
           new NodeSettings(NodeType.VALUE)
@@ -153,7 +275,16 @@ enum Rules {
           new NodeSettings(NodeType.TRIGGER),
           new NodeSettings(NodeType.VALUE)
   }, (DOMNode node) -> new TreeWalkerInstruction[]{}),
-  VALUE(STRING,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}),
+  VALUE(STRING,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> {
+    try {
+      if (node.getVariant().getString().equals("true")) {
+        return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(true) };
+      }
+    } catch (DOMNodeVariantTypeMismatchException e) {
+      throw new RuntimeException(e);
+    }
+    return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(false) };
+  }),
   QUERY(STRING,() -> new Rules[]{ }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}),
   CUSTOM(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}); // has to always remain empty here, as rules for a custom node are handled later down the line
 

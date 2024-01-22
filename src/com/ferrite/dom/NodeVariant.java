@@ -122,11 +122,25 @@ public class NodeVariant {
     return (int) variant;
   }
   @SuppressWarnings("unused")
+  public void setInt(int value) throws DOMNodeVariantTypeMismatchException {
+    if (getType() != NodeVariantType.INTEGER) {
+      throw new DOMNodeVariantTypeMismatchException(Integer.class, variant.getClass());
+    }
+    this.variant = value;
+  }
+  @SuppressWarnings("unused")
   public float getFloat() throws DOMNodeVariantTypeMismatchException {
     if (getType() != NodeVariantType.FLOAT) {
       throw new DOMNodeVariantTypeMismatchException(Float.class, variant.getClass());
     }
     return (float) variant;
+  }
+  @SuppressWarnings("unused")
+  public void setFloat(float value) throws DOMNodeVariantTypeMismatchException {
+    if (getType() != NodeVariantType.FLOAT) {
+      throw new DOMNodeVariantTypeMismatchException(Float.class, variant.getClass());
+    }
+    this.variant = value;
   }
   @SuppressWarnings("unused")
   public boolean getBoolean() throws DOMNodeVariantTypeMismatchException {
@@ -136,11 +150,32 @@ public class NodeVariant {
     return (boolean) variant;
   }
   @SuppressWarnings("unused")
+  public void setBoolean(boolean value) throws DOMNodeVariantTypeMismatchException {
+    if (getType() != NodeVariantType.BOOLEAN) {
+      throw new DOMNodeVariantTypeMismatchException(Boolean.class, variant.getClass());
+    }
+    this.variant = value;
+  }
+  @SuppressWarnings("unused")
   public String getString() throws DOMNodeVariantTypeMismatchException {
     if (getType() != NodeVariantType.STRING) {
       throw new DOMNodeVariantTypeMismatchException(String.class, variant.getClass());
     }
     return (String) variant;
+  }
+  @SuppressWarnings("unused")
+  public void setString(String value) throws DOMNodeVariantTypeMismatchException {
+    if (getType() != NodeVariantType.STRING) {
+      throw new DOMNodeVariantTypeMismatchException(String.class, variant.getClass());
+    }
+    this.variant = value;
+  }
+
+  public void setVariant(Object value) throws DOMNodeVariantTypeMismatchException {
+    if (this.variant.getClass() != value.getClass()) {
+      throw new DOMNodeVariantTypeMismatchException(String.class, variant.getClass());
+    }
+    this.variant = value;
   }
 
   @SuppressWarnings("unused")

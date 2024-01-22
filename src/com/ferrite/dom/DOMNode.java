@@ -9,10 +9,11 @@ import com.ferrite.dom.treewalker.instructions.TreeWalkerInstruction;
 import java.util.ArrayList;
 import java.util.Optional;
 
-public class DOMNode {
+public class DOMNode implements Cloneable {
   private ArrayList<DOMNode> edges;
   private NodeType type;
   private NodeVariant variant;
+  private DOMNode root;
 
   public DOMNode(NodeType type) {
     this.type = type;
@@ -59,6 +60,7 @@ public class DOMNode {
     this.edges.clear();
     for (DOMNode n : newNode.getEdges()) {
       addEdge(n);
+      n.setRoot(this);
     }
   }
 
@@ -80,5 +82,18 @@ public class DOMNode {
 
   public TreeWalkerInstruction[] getInstructions(DOMNode node) {
     return this.type.getInstructions(node);
+  }
+
+  public DOMNode getRoot() {
+    return root;
+  }
+
+  public void setRoot(DOMNode root) {
+    this.root = root;
+  }
+
+  @Override
+  public DOMNode clone() throws CloneNotSupportedException {
+    return (DOMNode) super.clone();
   }
 }

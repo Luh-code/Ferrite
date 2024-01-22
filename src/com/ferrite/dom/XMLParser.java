@@ -14,6 +14,7 @@ public class XMLParser {
   private Map<XMLToken, DOMNode> pairing = new HashMap<>();
   private Map<DOMNode, XMLToken> revPairing = new HashMap<>();
   public void parseNodes(XMLToken[] xmlTokens) throws DOMXMLParsingIllegalTokenTypeException, DOMXMLParsingIllegalTagException, DOMNodeEdgeDuplicationException, DOMNodeRuleNonExistentException, DOMNodeRuleTypeViolationException, DOMNodeRulePluralityViolationException, DOMXMLParsingMissingClosingTokenException, DOMXMLParsingMissingPairingException, DOMXMLParsingMissingOpeningTokenException, DOMXMLParsingNullTokenException, DOMXMLParsingDuplicateVariantException, DOMXMLParsingIllegalNoneTypeVariantSettingException, DOMXMLParsingMismatchedVariantTypeException {
+    this.root = null;
     BiConsumer<XMLToken, DOMNode> pairingAdder = (XMLToken token, DOMNode node) -> {
       pairing.put(token, node);
       revPairing.put(node, token);
@@ -51,6 +52,7 @@ public class XMLParser {
           if (root == null) { // set root if null
             root = temp;
           }
+          temp.setRoot(root);
         }
         case XMLClosingToken xmlClosingToken -> {
           // Throw if currently no node is current

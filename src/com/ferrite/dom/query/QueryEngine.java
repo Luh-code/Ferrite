@@ -25,10 +25,11 @@ public class QueryEngine {
   private DOMNode currentNode;
   private String[] tokens;
   private String query;
-  private Pattern queryPattern = Pattern.compile("'([^']+)|([^\\s']+)");
+  private Pattern queryPattern = Pattern.compile("'([^']+)'|([^\\s']+)");
 
   private ArrayList<DOMNode> selected;
-  int currentToken = 0;
+  private int currentToken = 0;
+  private String lastTag = "";
 
   /*
   SYNTAX:
@@ -36,6 +37,10 @@ public class QueryEngine {
     GET '[node type]'='[node alias]' - gets the first node, that matches the criteria, selects all edges
   Can be stacked/not limited to one, eg.: "FROM machines GET 'ALIAS'=='test machine0' GET 'ALIAS'=='state0'"
    */
+
+  public void queryTop(DOMNode current, String query) throws QueryInvalidSyntaxException, QueryEmptyResultException {
+    query(current.getRoot(), query);
+  }
 
   public void query(DOMNode root, String query) throws QueryInvalidSyntaxException, QueryEmptyResultException {
     this.currentNode = root;
@@ -51,9 +56,11 @@ public class QueryEngine {
     while (currentToken < this.tokens.length-1) {
       switch (tokens[currentToken].toUpperCase()) {
         case "FROM" -> {
+          lastTag = "FROM";
           fromToken();
         }
         case "GET" -> {
+          lastTag = "GET";
           getToken();
         }
         default -> {
@@ -86,7 +93,7 @@ public class QueryEngine {
     String value = this.tokens[++currentToken];
     for (DOMNode node : this.selected) {
       Optional<DOMNode> subNode = node.getEdge(NodeType.fromString(type));
-      if (subNode.isEmpty() || compareVariant(subNode.get().getVariant(), operator, value)) {
+      if (subNode.isEmpty() || !compareVariant(subNode.get().getVariant(), operator, value)) {
         continue;
       }
       this.currentNode = node;
@@ -140,6 +147,9 @@ public class QueryEngine {
   }
 
   public DOMNode getResult() {
-    return this.currentNode;
+    if (lastTag.equals("GET")) {
+      return this.currentNode;
+    }
+    return this.selected.getFirst();
   }
 }
