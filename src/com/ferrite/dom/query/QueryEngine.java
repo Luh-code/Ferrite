@@ -106,7 +106,7 @@ public class QueryEngine {
   private boolean compareVariant(NodeVariant var, String operation, String value) throws QueryInvalidSyntaxException {
     switch (operation) {
       case "==" -> {
-        return var.equals(value);
+        return var.isEqual(value);
       }
       case "!=" -> {
         return var.notEquals(value);

@@ -1,6 +1,6 @@
 package com.ferrite.dom;
 
-import com.ferrite.dom.exceptions.DOMNodeVariantTypeMismatchException;
+import com.ferrite.dom.exceptions.*;
 import com.ferrite.dom.exceptions.TreeWalker.TreeWalkerException;
 import com.ferrite.dom.exceptions.TreeWalker.TreeWalkerNodeNotFoundException;
 import com.ferrite.dom.exceptions.query.QueryEmptyResultException;
@@ -100,7 +100,9 @@ enum Rules {
       // transition is expected to move up itself
     }
 
-    instructions.add(new TreeWalkerLoopInstruction(transitonLoopInstructuions.toArray(TreeWalkerInstruction[]::new), node));
+    instructions.add(new TreeWalkerLoopInstruction(transitonLoopInstructuions.toArray(TreeWalkerInstruction[]::new), new TreeWalkerInstruction[]{
+            new TreeWalkerGetInstruction(false),
+    }, node));
 
 
     return instructions.toArray(TreeWalkerInstruction[]::new);
@@ -133,6 +135,7 @@ enum Rules {
     ArrayList<TreeWalkerInstruction> instructions = new ArrayList<>();
 
     ArrayList<TreeWalkerInstruction> modificationInstructions = new ArrayList<>();
+    int backs = 0;
     for (DOMNode edge : node.getEdges()) {
       Optional<DOMNode> query = edge.getEdge(NodeType.QUERY);
       if (query.isEmpty()) {
@@ -148,12 +151,13 @@ enum Rules {
 
       ArrayList<DOMNode> allButQuery = edge.getEdges();
       allButQuery.remove(query.get());
-      modificationInstructions.add(new TreeWalkerMoveInstruction(node, 0, true)); // 3
+      modificationInstructions.add(new TreeWalkerMoveInstruction(null, 1, true)); // 3
       modificationInstructions.add(new TreeWalkerNodeModificationInsrtuction(allButQuery.toArray(DOMNode[]::new), true)); // 2
       modificationInstructions.add(new TreeWalkerMoveInstruction(queriedNode, 0, true)); // 1
+      backs++;
     }
 
-    instructions.add(new TreeWalkerMoveInstruction(null, 1, true)); // 4
+    instructions.add(new TreeWalkerMoveInstruction(null, 1+backs, true)); // 4
     instructions.addAll(modificationInstructions);
 
     return instructions.toArray(TreeWalkerInstruction[]::new);
@@ -213,8 +217,8 @@ enum Rules {
       }
     }
 
+    // Transition state into the destination state is condition is met
     if (res) {
-      // Transition state into the destination state
       Optional<DOMNode> state = node.getEdge(NodeType.STATE);
       if (state.isEmpty()) {
         throw new RuntimeException("Invalid transition: no destination state defined");
@@ -240,6 +244,7 @@ enum Rules {
   TYPE(STRING,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}),
   IF(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.EQUALS).setArrayable(),
+          new NodeSettings(NodeType.NOT_EQUALS).setArrayable(),
           new NodeSettings(NodeType.LESSER).setArrayable(),
           new NodeSettings(NodeType.GREATER).setArrayable(),
           new NodeSettings(NodeType.VALUE)
@@ -248,7 +253,7 @@ enum Rules {
     for (DOMNode edge : node.getEdges()) {
       TreeWalkerMarkerInstruction temp = null;
       switch (edge.getType()) {
-        case EQUALS, LESSER, GREATER, VALUE -> {
+        case EQUALS, NOT_EQUALS, LESSER, GREATER, VALUE -> {
           temp = (TreeWalkerMarkerInstruction) edge.getInstructions(edge)[0];
         }
       }
@@ -266,22 +271,99 @@ enum Rules {
   EQUALS(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TRIGGER),
           new NodeSettings(NodeType.VALUE)
-  }, (DOMNode node) -> new TreeWalkerInstruction[]{}),
+  }, (DOMNode node) -> {
+    Optional<DOMNode> trigger = node.getEdge(NodeType.TRIGGER);
+    if (trigger.isEmpty()) {
+      throw new RuntimeException("Tried to compare without a trigger");
+    }
+    Optional<DOMNode> triggerValue = trigger.get().getEdge(NodeType.VALUE);
+    if (triggerValue.isEmpty()) {
+      DOMNode temp = new DOMNode(NodeType.VALUE);
+      temp.setVariant(new NodeVariant(""));
+      try {
+        trigger.get().addEdge(temp);
+      } catch (DOMNodeEdgeDuplicationException | DOMNodeRuleTypeViolationException |
+               DOMNodeRulePluralityViolationException | DOMNodeRuleNonExistentException e) {
+        throw new RuntimeException(e);
+      }
+      triggerValue = Optional.of(temp);
+      //throw new RuntimeException("Tried to compare to a trigger without a value to compare to");
+    }
+    Optional<DOMNode> value = node.getEdge(NodeType.VALUE);
+    if (value.isEmpty()) {
+      throw new RuntimeException("Tried to compare to a trigger without a value to compare to");
+    }
+    if (triggerValue.get().getVariant().isEqual(value.get().getVariant())) {
+      return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(true) };
+    }
+    return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(false) };
+  }),
+  NOT_EQUALS(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
+          new NodeSettings(NodeType.TRIGGER),
+          new NodeSettings(NodeType.VALUE)
+  }, (DOMNode node) -> {
+    Optional<DOMNode> trigger = node.getEdge(NodeType.TRIGGER);
+    if (trigger.isEmpty()) {
+      throw new RuntimeException("Tried to compare without a trigger");
+    }
+    Optional<DOMNode> triggerValue = trigger.get().getEdge(NodeType.VALUE);
+    if (triggerValue.isEmpty()) {
+      throw new RuntimeException("Tried to compare to a trigger without a value to compare to");
+    }
+    Optional<DOMNode> value = node.getEdge(NodeType.VALUE);
+    if (value.isEmpty()) {
+      throw new RuntimeException("Tried to compare to a trigger without a value to compare to");
+    }
+    if (triggerValue.get().getVariant().notEquals(value.get().getVariant())) {
+      return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(true) };
+    }
+    return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(false) };
+  }),
   LESSER(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TRIGGER),
           new NodeSettings(NodeType.VALUE)
-  }, (DOMNode node) -> new TreeWalkerInstruction[]{}),
+  }, (DOMNode node) -> {
+    Optional<DOMNode> trigger = node.getEdge(NodeType.TRIGGER);
+    if (trigger.isEmpty()) {
+      throw new RuntimeException("Tried to compare without a trigger");
+    }
+    Optional<DOMNode> triggerValue = trigger.get().getEdge(NodeType.VALUE);
+    if (triggerValue.isEmpty()) {
+      throw new RuntimeException("Tried to compare to a trigger without a value to compare to");
+    }
+    Optional<DOMNode> value = node.getEdge(NodeType.VALUE);
+    if (value.isEmpty()) {
+      throw new RuntimeException("Tried to compare to a trigger without a value to compare to");
+    }
+    if (triggerValue.get().getVariant().lesser(value.get().getVariant())) {
+      return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(true) };
+    }
+    return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(false) };
+  }),
   GREATER(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TRIGGER),
           new NodeSettings(NodeType.VALUE)
-  }, (DOMNode node) -> new TreeWalkerInstruction[]{}),
+  }, (DOMNode node) -> {
+    Optional<DOMNode> trigger = node.getEdge(NodeType.TRIGGER);
+    if (trigger.isEmpty()) {
+      throw new RuntimeException("Tried to compare without a trigger");
+    }
+    Optional<DOMNode> triggerValue = trigger.get().getEdge(NodeType.VALUE);
+    if (triggerValue.isEmpty()) {
+      throw new RuntimeException("Tried to compare to a trigger without a value to compare to");
+    }
+    Optional<DOMNode> value = node.getEdge(NodeType.VALUE);
+    if (value.isEmpty()) {
+      throw new RuntimeException("Tried to compare to a trigger without a value to compare to");
+    }
+    if (triggerValue.get().getVariant().greater(value.get().getVariant())) {
+      return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(true) };
+    }
+    return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(false) };
+  }),
   VALUE(STRING,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> {
-    try {
-      if (node.getVariant().getString().equals("true")) {
-        return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(true) };
-      }
-    } catch (DOMNodeVariantTypeMismatchException e) {
-      throw new RuntimeException(e);
+    if (node.getVariant().isEqual("true")) {
+      return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(true) };
     }
     return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(false) };
   }),

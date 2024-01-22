@@ -44,7 +44,7 @@ public class TreeWalkerNodeModificationInsrtuction implements TreeWalkerInstruct
 
       try {
         node1.get().getVariant().setVariant(node.getVariant());
-      } catch (DOMNodeVariantTypeMismatchException e) {
+      } catch (DOMNodeVariantTypeMismatchException | DOMNodeVariantIllegalVariantTypeException e) {
         throw new RuntimeException(e);
       }
     }

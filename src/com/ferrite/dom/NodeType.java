@@ -53,6 +53,7 @@ public enum NodeType {
   IF(Rules.IF),
 
   EQUALS(Rules.EQUALS),
+  NOT_EQUALS(Rules.NOT_EQUALS),
 
   LESSER(Rules.LESSER),
 

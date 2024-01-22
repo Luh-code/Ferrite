@@ -16,7 +16,7 @@ public class TreeWalker implements Runnable {
   public TreeWalker() {
     this.instructions = new ArrayDeque<>();
     this.lateInstructions = new ArrayDeque<>();
-    this.past = new LimitedStack<>(5);
+    this.past = new LimitedStack<>(15);
   }
 
   public void dispatch(DOMNode root) {

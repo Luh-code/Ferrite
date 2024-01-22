@@ -171,27 +171,43 @@ public class NodeVariant {
     this.variant = value;
   }
 
-  public void setVariant(Object value) throws DOMNodeVariantTypeMismatchException {
-    if (this.variant.getClass() != value.getClass()) {
+  public String getAsString() {
+    return String.valueOf(this.variant);
+  }
+
+  public void setVariant(NodeVariant value) throws DOMNodeVariantTypeMismatchException, DOMNodeVariantIllegalVariantTypeException {
+    if (getType() != value.getType()) {
       throw new DOMNodeVariantTypeMismatchException(String.class, variant.getClass());
     }
-    this.variant = value;
+    this.variant = value.variant;
   }
 
   @SuppressWarnings("unused")
-  public boolean equals(String value) {
+  public boolean isEqual(String value) {
     return this.compEquals.apply(value);
+  }
+  public boolean isEqual(NodeVariant value) {
+    return this.compEquals.apply(value.getAsString());
   }
   @SuppressWarnings("unused")
   public boolean notEquals(String value) {
     return this.compNotEquals.apply(value);
   }
+  public boolean notEquals(NodeVariant value) {
+    return this.compNotEquals.apply(value.getAsString());
+  }
   @SuppressWarnings("unused")
   public boolean greater(String value) {
     return this.compGreater.apply(value);
   }
+  public boolean greater(NodeVariant value) {
+    return this.compGreater.apply(value.getAsString());
+  }
   @SuppressWarnings("unused")
   public boolean lesser(String value) {
     return this.compLesser.apply(value);
+  }
+  public boolean lesser(NodeVariant value) {
+    return this.compLesser.apply(value.getAsString());
   }
 }

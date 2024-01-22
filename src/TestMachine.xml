@@ -34,7 +34,7 @@
 	<origin>false</origin>
 	<external>false</external>
 	<begin>
-		<trigger query="FROM machine GET 'alias'=='TestMachine' FROM trigger GET 'alias'=='TestTrigger'">
+		<trigger query="FROM trigger GET 'alias'=='TestTrigger'">
 			<value>21</value>
 		</trigger>
 	</begin>
