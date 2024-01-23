@@ -44,7 +44,7 @@ public class XMLTokenizer {
 
       //System.out.println(part);
       if (!part.startsWith("<")) { // If eval to true, it is plain text
-        if (part.startsWith("\n")) {
+        if (part.startsWith("\n") || part.startsWith("\r\n")) {
           continue;
         }
         // Add and match token

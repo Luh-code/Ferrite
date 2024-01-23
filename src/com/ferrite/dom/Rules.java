@@ -110,7 +110,7 @@ enum Rules {
   }),
   TRIGGER(NONE,() -> new Rules[]{ GENERAL, ALIASED }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TYPE),
-          new NodeSettings(NodeType.CUSTOM).setArrayable(),
+          //new NodeSettings(NodeType.CUSTOM).setArrayable(),
           new NodeSettings(NodeType.ACTIVE),
           new NodeSettings(NodeType.VALUE)
   }, (DOMNode node) -> new TreeWalkerInstruction[]{}),

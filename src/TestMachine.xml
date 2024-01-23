@@ -21,7 +21,7 @@
 <output>
 	<alias>1</alias>
 	<type>digital</type>
-	<value>0</value>
+	<value>false</value>
 </output>
 <state>
 	<alias>state0</alias>
@@ -30,9 +30,9 @@
 		<trigger query="FROM trigger GET 'alias'=='TestTrigger'">
 			<value>21</value>
 		</trigger>
-		<trigger query="FROM trigger GET 'alias'=='1'">
+		<output query="FROM output GET 'alias'=='1'">
 			<value>true</value>
-		</trigger>
+		</output>
 		<trigger query="FROM trigger GET 'alias'=='timeout1'">
 			<value>5000</value>
 		</trigger>
@@ -59,38 +59,38 @@
 	<origin>false</origin>
 	<begin>
 		<output>
-			<query>FROM state GET 'some output'</query>
+			<query>FROM output GET 'alias'=='1'</query>
 			<active>1</active>
 		</output>
 		<trigger>
-			<query>FROM state GET 'state1 timeout'</query>
+			<query>FROM trigger GET 'alias'=='timeout1'</query>
 		</trigger>
 	</begin>
 	<transition>
-		<state query="FROM trigger GET 'external state1'"/>
+		<state query="FROM trigger GET 'alias'=='state0'"/>
 		<if>
 			<equals>
-				<trigger query="FROM trigger GET 'state1 timeout'"/>
+				<trigger query="FROM trigger GET 'alias'=='timeout1'"/>
 				<value>0</value>
 			</equals>
 		</if>
 	</transition>
 	<transition>
-		<state query="FROM trigger GET 'external state2'"/>
+		<state query="FROM trigger GET 'alias'=='external state2'"/>
 		<if>
 			<equals>
-				<trigger query="FROM trigger GET 'magnet sensor1'"/>
+				<trigger query="FROM trigger GET 'alias'=='1'"/>
 				<value>1</value>
 			</equals>
 		</if>
 	</transition>
 	<end>
 		<output>
-			<query>FROM state GET 'some output'</query>
+			<query>FROM state GET 'alias'=='1'</query>
 			<active>0</active>
 		</output>
 		<trigger>
-			<query>FROM state GET 'state1 timeout'</query>
+			<query>FROM state GET 'alias'=='timeout1'</query>
 			<active>0</active>
 		</trigger>
 	</end>
