@@ -97,6 +97,7 @@ enum Rules {
     for (DOMNode transition : transitions) {
       transitonLoopInstructuions.add(new TreeWalkerGetInstruction(false));
       transitonLoopInstructuions.add(new TreeWalkerMoveInstruction(transition, 0, false));
+      transitonLoopInstructuions.add(new TreeWalkerIOUpdateInstruction(false));
       // transition is expected to move up itself
     }
 
@@ -134,6 +135,8 @@ enum Rules {
   }, (DOMNode node) -> {
     ArrayList<TreeWalkerInstruction> instructions = new ArrayList<>();
 
+    instructions.add(new TreeWalkerIOUpdateInstruction(false));
+
     ArrayList<TreeWalkerInstruction> modificationInstructions = new ArrayList<>();
     int backs = 0;
     for (DOMNode edge : node.getEdges()) {
@@ -168,6 +171,8 @@ enum Rules {
   }, (DOMNode node) -> {
     ArrayList<TreeWalkerInstruction> instructions = new ArrayList<>();
 
+    instructions.add(new TreeWalkerIOUpdateInstruction(false));
+
     ArrayList<TreeWalkerInstruction> modificationInstructions = new ArrayList<>();
     for (DOMNode edge : node.getEdges()) {
       Optional<DOMNode> query = edge.getEdge(NodeType.QUERY);
@@ -188,6 +193,8 @@ enum Rules {
       modificationInstructions.add(new TreeWalkerNodeModificationInsrtuction(allButQuery.toArray(DOMNode[]::new), true)); // 2
       modificationInstructions.add(new TreeWalkerMoveInstruction(queriedNode, 0, true)); // 1
     }
+
+    instructions.add(new TreeWalkerIOUpdateInstruction(true));
 
     instructions.add(new TreeWalkerMoveInstruction(null, 1, true)); // 4
     instructions.addAll(modificationInstructions);

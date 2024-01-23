@@ -6,14 +6,12 @@
 <alias>TestMachine</alias>
 <external>false</external>
 <trigger>
-	<alias>magnet sensor 1</alias>
+	<alias>1</alias>
 	<type>digital</type>
-	<active>low</active>
 </trigger>
 <trigger>
-	<alias>magnet sensor 2</alias>
+	<alias>2</alias>
 	<type>digital</type>
-	<active>low</active>
 </trigger>
 <trigger>
 	<alias>state1 timeout</alias>
@@ -23,7 +21,7 @@
 </trigger>
 <trigger alias="TestTrigger" type="value" value="0"/>
 <output>
-	<alias>some output</alias>
+	<alias>1</alias>
 	<type>digital</type>
 	<active>high</active>
 	<value>0</value>
@@ -36,6 +34,9 @@
 	<begin>
 		<trigger query="FROM trigger GET 'alias'=='TestTrigger'">
 			<value>21</value>
+		</trigger>
+		<trigger query="FROM trigger GET 'alias'=='1'">
+			<value>true</value>
 		</trigger>
 	</begin>
 	<transition>
@@ -98,14 +99,5 @@
 			<active>0</active>
 		</trigger>
 	</end>
-</state>
-<state>
-	<alias>external state1</alias>
-	<entry>false</entry>
-	<origin>false</origin>
-</state>
-<state entry="false">
-	<alias>external state2</alias>
-	<origin>false</origin>
 </state>
 </machine>

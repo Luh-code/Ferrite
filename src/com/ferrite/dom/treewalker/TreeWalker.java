@@ -1,5 +1,6 @@
 package com.ferrite.dom.treewalker;
 
+import com.ferrite.controller.Controller;
 import com.ferrite.dom.DOMNode;
 import com.ferrite.dom.treewalker.instructions.TreeWalkerGetInstruction;
 import com.ferrite.dom.treewalker.instructions.TreeWalkerInstruction;
@@ -13,17 +14,21 @@ public class TreeWalker implements Runnable {
   private ArrayDeque<TreeWalkerInstruction> lateInstructions;
   private LimitedStack<DOMNode> past;
 
-  public TreeWalker() {
+  private Controller controller;
+
+  public TreeWalker(Controller controller) {
     this.instructions = new ArrayDeque<>();
     this.lateInstructions = new ArrayDeque<>();
     this.past = new LimitedStack<>(15);
+    this.controller = controller;
   }
 
   public void dispatch(DOMNode root) {
     this.position = root;
     addInstruction(new TreeWalkerGetInstruction(false));
     Thread t = new Thread(this);
-    t.start();
+    //t.start();
+    run();
   }
 
   private void loop() {
@@ -106,5 +111,9 @@ public class TreeWalker implements Runnable {
   }
   public int pastSize() {
     return past.size();
+  }
+
+  public Controller getController() {
+    return controller;
   }
 }

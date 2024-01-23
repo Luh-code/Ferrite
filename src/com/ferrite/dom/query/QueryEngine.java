@@ -51,6 +51,8 @@ public class QueryEngine {
       throwInvalidSyntaxException(0, "Bounding command");
     }*/
 
+    /*ArrayList<DOMNode> edges = new ArrayList<>(this.currentNode.getEdges());
+    this.selected = edges;*/
     this.selected = (ArrayList<DOMNode>) this.currentNode.getEdges().clone();
 
     while (currentToken < this.tokens.length-1) {
@@ -97,7 +99,9 @@ public class QueryEngine {
         continue;
       }
       this.currentNode = node;
-      this.selected = this.currentNode.getEdges();
+      /*ArrayList<DOMNode> edges = new ArrayList<>(this.currentNode.getEdges());
+      this.selected = edges;*/
+      this.selected = (ArrayList<DOMNode>) this.currentNode.getEdges().clone();
       return;
     }
     throw new QueryEmptyResultException(this.query);
@@ -151,5 +155,9 @@ public class QueryEngine {
       return this.currentNode;
     }
     return this.selected.getFirst();
+  }
+
+  public ArrayList<DOMNode> getSelected() {
+    return selected;
   }
 }

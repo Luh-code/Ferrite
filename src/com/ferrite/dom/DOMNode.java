@@ -38,7 +38,7 @@ public class DOMNode implements Cloneable {
   }
 
   public Optional<DOMNode> getEdge(NodeType type) {
-    for (DOMNode edge : this.edges) {
+    for (DOMNode edge : getEdges()) {
       if (edge.getType() == type) {
         return Optional.of(edge);
       }
@@ -48,7 +48,7 @@ public class DOMNode implements Cloneable {
 
   public ArrayList<DOMNode> getEdges(NodeType type) {
     ArrayList<DOMNode> nodes = new ArrayList<>();
-    for (DOMNode edge : this.edges) {
+    for (DOMNode edge : getEdges()) {
       if (edge.getType() == type) {
         nodes.add(edge);
       }
@@ -77,7 +77,7 @@ public class DOMNode implements Cloneable {
   }
 
   public ArrayList<DOMNode> getEdges() {
-    return edges;
+    return (ArrayList<DOMNode>) edges.clone();
   }
 
   public TreeWalkerInstruction[] getInstructions(DOMNode node) {

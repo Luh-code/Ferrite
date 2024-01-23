@@ -1,6 +1,7 @@
 package com.ferrite.dom;
 
 import com.ferrite.FerriteException;
+import com.ferrite.controller.Controller;
 import com.ferrite.dom.treewalker.TreeWalker;
 import com.ferrite.serialization.XMLToken;
 import com.ferrite.serialization.XMLTokenizer;
@@ -79,7 +80,10 @@ public class Document {
     } catch (FerriteException e) {
       throw new RuntimeException(e);
     }
-    TreeWalker tw = new TreeWalker();
+
+    Controller controller = new Controller(32, 32);
+
+    TreeWalker tw = new TreeWalker(controller);
     tw.dispatch(d.getRoot());
   }
 }
