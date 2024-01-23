@@ -112,21 +112,15 @@ enum Rules {
           new NodeSettings(NodeType.TYPE),
           new NodeSettings(NodeType.CUSTOM).setArrayable(),
           new NodeSettings(NodeType.ACTIVE),
-          new NodeSettings(NodeType.TIME),
-          new NodeSettings(NodeType.RUNNING),
           new NodeSettings(NodeType.VALUE)
   }, (DOMNode node) -> new TreeWalkerInstruction[]{}),
   OUTPUT(NONE,() -> new Rules[]{ GENERAL, ALIASED }, () -> new NodeSettings[]{
           new NodeSettings(NodeType.TYPE),
           new NodeSettings(NodeType.CUSTOM).setArrayable(),
           new NodeSettings(NodeType.ACTIVE),
-          new NodeSettings(NodeType.TIME),
-          new NodeSettings(NodeType.RUNNING),
           new NodeSettings(NodeType.VALUE)
   }, (DOMNode node) -> new TreeWalkerInstruction[]{}),
   ACTIVE(STRING, () -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}),
-  TIME(FLOAT,  () -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}),
-  RUNNING(BOOLEAN, () -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}),
   ORIGIN(BOOLEAN,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}),
   ENTRY(BOOLEAN,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}),
   BEGIN(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{
@@ -209,13 +203,8 @@ enum Rules {
 
     // Check conditions via ifs
     boolean res = false;
-    for (DOMNode edge : node.getEdges()) {
-      TreeWalkerMarkerInstruction temp = null;
-      switch (edge.getType()) {
-        case IF -> {
-          temp = (TreeWalkerMarkerInstruction) edge.getInstructions(edge)[0];
-        }
-      }
+    for (DOMNode edge : node.getEdges(NodeType.IF)) {
+      TreeWalkerMarkerInstruction temp = (TreeWalkerMarkerInstruction) edge.getInstructions(edge)[0];
       if (temp != null) {
         if (temp.getValue()) {
           res = true;
@@ -240,10 +229,10 @@ enum Rules {
           throw new RuntimeException(e);
         }
       }
+      instructions.add(new TreeWalkerGetInstruction(true));
+      instructions.add(new TreeWalkerSearchInstruction("FROM end", false, true));
     }
 
-    instructions.add(new TreeWalkerGetInstruction(true));
-    instructions.add(new TreeWalkerSearchInstruction("FROM end", false, true));
     instructions.add(new TreeWalkerMoveInstruction(null, 1, true));
 
     return instructions.toArray(TreeWalkerInstruction[]::new);
@@ -283,12 +272,26 @@ enum Rules {
     if (trigger.isEmpty()) {
       throw new RuntimeException("Tried to compare without a trigger");
     }
-    Optional<DOMNode> triggerValue = trigger.get().getEdge(NodeType.VALUE);
+
+    Optional<DOMNode> query = trigger.get().getEdge(NodeType.QUERY);
+    if (query.isEmpty()) {
+      throw new RuntimeException("Cannot define trigger directly in transition, use query");
+    }
+
+    QueryEngine qe = new QueryEngine();
+    try {
+      qe.queryTop(node, query.get().getVariant().getString());
+    } catch (QueryInvalidSyntaxException | QueryEmptyResultException | DOMNodeVariantTypeMismatchException e) {
+      throw new RuntimeException(e);
+    }
+    DOMNode queriedTrigger = qe.getResult();
+
+    Optional<DOMNode> triggerValue = queriedTrigger.getEdge(NodeType.VALUE);
     if (triggerValue.isEmpty()) {
       DOMNode temp = new DOMNode(NodeType.VALUE);
       temp.setVariant(new NodeVariant(""));
       try {
-        trigger.get().addEdge(temp);
+        queriedTrigger.addEdge(temp);
       } catch (DOMNodeEdgeDuplicationException | DOMNodeRuleTypeViolationException |
                DOMNodeRulePluralityViolationException | DOMNodeRuleNonExistentException e) {
         throw new RuntimeException(e);
@@ -313,9 +316,32 @@ enum Rules {
     if (trigger.isEmpty()) {
       throw new RuntimeException("Tried to compare without a trigger");
     }
-    Optional<DOMNode> triggerValue = trigger.get().getEdge(NodeType.VALUE);
+
+    Optional<DOMNode> query = trigger.get().getEdge(NodeType.QUERY);
+    if (query.isEmpty()) {
+      throw new RuntimeException("Cannot define trigger directly in transition, use query");
+    }
+
+    QueryEngine qe = new QueryEngine();
+    try {
+      qe.queryTop(node, query.get().getVariant().getString());
+    } catch (QueryInvalidSyntaxException | QueryEmptyResultException | DOMNodeVariantTypeMismatchException e) {
+      throw new RuntimeException(e);
+    }
+    DOMNode queriedTrigger = qe.getResult();
+
+    Optional<DOMNode> triggerValue = queriedTrigger.getEdge(NodeType.VALUE);
     if (triggerValue.isEmpty()) {
-      throw new RuntimeException("Tried to compare to a trigger without a value to compare to");
+      DOMNode temp = new DOMNode(NodeType.VALUE);
+      temp.setVariant(new NodeVariant(""));
+      try {
+        queriedTrigger.addEdge(temp);
+      } catch (DOMNodeEdgeDuplicationException | DOMNodeRuleTypeViolationException |
+               DOMNodeRulePluralityViolationException | DOMNodeRuleNonExistentException e) {
+        throw new RuntimeException(e);
+      }
+      triggerValue = Optional.of(temp);
+      //throw new RuntimeException("Tried to compare to a trigger without a value to compare to");
     }
     Optional<DOMNode> value = node.getEdge(NodeType.VALUE);
     if (value.isEmpty()) {
@@ -334,9 +360,32 @@ enum Rules {
     if (trigger.isEmpty()) {
       throw new RuntimeException("Tried to compare without a trigger");
     }
-    Optional<DOMNode> triggerValue = trigger.get().getEdge(NodeType.VALUE);
+
+    Optional<DOMNode> query = trigger.get().getEdge(NodeType.QUERY);
+    if (query.isEmpty()) {
+      throw new RuntimeException("Cannot define trigger directly in transition, use query");
+    }
+
+    QueryEngine qe = new QueryEngine();
+    try {
+      qe.queryTop(node, query.get().getVariant().getString());
+    } catch (QueryInvalidSyntaxException | QueryEmptyResultException | DOMNodeVariantTypeMismatchException e) {
+      throw new RuntimeException(e);
+    }
+    DOMNode queriedTrigger = qe.getResult();
+
+    Optional<DOMNode> triggerValue = queriedTrigger.getEdge(NodeType.VALUE);
     if (triggerValue.isEmpty()) {
-      throw new RuntimeException("Tried to compare to a trigger without a value to compare to");
+      DOMNode temp = new DOMNode(NodeType.VALUE);
+      temp.setVariant(new NodeVariant(""));
+      try {
+        queriedTrigger.addEdge(temp);
+      } catch (DOMNodeEdgeDuplicationException | DOMNodeRuleTypeViolationException |
+               DOMNodeRulePluralityViolationException | DOMNodeRuleNonExistentException e) {
+        throw new RuntimeException(e);
+      }
+      triggerValue = Optional.of(temp);
+      //throw new RuntimeException("Tried to compare to a trigger without a value to compare to");
     }
     Optional<DOMNode> value = node.getEdge(NodeType.VALUE);
     if (value.isEmpty()) {
@@ -355,9 +404,32 @@ enum Rules {
     if (trigger.isEmpty()) {
       throw new RuntimeException("Tried to compare without a trigger");
     }
-    Optional<DOMNode> triggerValue = trigger.get().getEdge(NodeType.VALUE);
+
+    Optional<DOMNode> query = trigger.get().getEdge(NodeType.QUERY);
+    if (query.isEmpty()) {
+      throw new RuntimeException("Cannot define trigger directly in transition, use query");
+    }
+
+    QueryEngine qe = new QueryEngine();
+    try {
+      qe.queryTop(node, query.get().getVariant().getString());
+    } catch (QueryInvalidSyntaxException | QueryEmptyResultException | DOMNodeVariantTypeMismatchException e) {
+      throw new RuntimeException(e);
+    }
+    DOMNode queriedTrigger = qe.getResult();
+
+    Optional<DOMNode> triggerValue = queriedTrigger.getEdge(NodeType.VALUE);
     if (triggerValue.isEmpty()) {
-      throw new RuntimeException("Tried to compare to a trigger without a value to compare to");
+      DOMNode temp = new DOMNode(NodeType.VALUE);
+      temp.setVariant(new NodeVariant(""));
+      try {
+        queriedTrigger.addEdge(temp);
+      } catch (DOMNodeEdgeDuplicationException | DOMNodeRuleTypeViolationException |
+               DOMNodeRulePluralityViolationException | DOMNodeRuleNonExistentException e) {
+        throw new RuntimeException(e);
+      }
+      triggerValue = Optional.of(temp);
+      //throw new RuntimeException("Tried to compare to a trigger without a value to compare to");
     }
     Optional<DOMNode> value = node.getEdge(NodeType.VALUE);
     if (value.isEmpty()) {

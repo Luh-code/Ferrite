@@ -9,10 +9,12 @@ public class Controller {
   private BitSet input;
   private BitSet output;
 
+  private HashMap<String, Timer> timers;
+
   public Controller(int inputBits, int outputBits) {
     this.input = new BitSet(inputBits);
     this.output = new BitSet(outputBits);
-    //this.updated =
+    this.timers = new HashMap<>();
   }
 
   public void updateInput(BitSet input) {
@@ -29,17 +31,18 @@ public class Controller {
     return this.input.get(bit);
   }
 
+  public BitSet getInput() {
+    return input;
+  }
+
   public void setOutput(int bit, boolean value) {
     if (bit >= this.output.size() || bit < 0) {
       throw new IllegalArgumentException("Cannot set a bit outside the range of the output BitSet");
     }
     this.output.set(bit, value);
-
-    System.out.println("Input: "+bitSetToString(this.input));
-    System.out.println("Output: "+bitSetToString(this.output));
   }
 
-  private static String bitSetToString(BitSet bitSet) {
+  public static String bitSetToString(BitSet bitSet) {
     StringBuilder stringBuilder = new StringBuilder();
     int size = bitSet.length();
 
@@ -56,5 +59,51 @@ public class Controller {
       throw new IllegalArgumentException("Cannot get a bit outside the range of the output BitSet");
     }
     return this.output.get(bit);
+  }
+  public BitSet getOutput() {
+    return output;
+  }
+
+  public boolean checkIfTimerExists(String name) {
+    return this.timers.containsKey(name);
+  }
+
+  public void createTimer(String name) {
+    if (checkIfTimerExists(name)) {
+      throw new RuntimeException("Cannot create two timers with the same key");
+    }
+    this.timers.put(name, new Timer());
+  }
+
+  public void startTimer(String name, int timeout) {
+    if (!checkIfTimerExists(name)) {
+      throw new RuntimeException("Cannot check non-existent timer");
+    }
+    this.timers.get(name).setTimeout(timeout);
+  }
+
+  public int checkTimer(String name) {
+    if (!checkIfTimerExists(name)) {
+      throw new RuntimeException("Cannot check non-existent timer");
+    }
+    return this.timers.get(name).timeLeft();
+  }
+
+  public Timer[] getTimer() {
+    return this.timers.values().toArray(Timer[]::new);
+  }
+  public static String timerArrayToString(Timer[] timer) {
+    StringBuilder stringBuilder = new StringBuilder();
+
+    stringBuilder.append("{ ");
+
+    for (int i = 0; i < timer.length; i++) {
+      stringBuilder.append(timer[i].toString());
+      stringBuilder.append(", ");
+    }
+
+    stringBuilder.append("}");
+
+    return stringBuilder.toString();
   }
 }

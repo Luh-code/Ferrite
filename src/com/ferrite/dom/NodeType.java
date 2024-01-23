@@ -34,10 +34,6 @@ public enum NodeType {
 
   ACTIVE(Rules.ACTIVE),
 
-  TIME(Rules.TIME),
-
-  RUNNING(Rules.RUNNING),
-
   ORIGIN(Rules.ORIGIN),
 
   ENTRY(Rules.ENTRY),

@@ -1,9 +1,6 @@
 package com.ferrite.dom;
 
-import com.ferrite.dom.exceptions.DOMNodeEdgeDuplicationException;
-import com.ferrite.dom.exceptions.DOMNodeRuleNonExistentException;
-import com.ferrite.dom.exceptions.DOMNodeRulePluralityViolationException;
-import com.ferrite.dom.exceptions.DOMNodeRuleTypeViolationException;
+import com.ferrite.dom.exceptions.*;
 import com.ferrite.dom.treewalker.instructions.TreeWalkerInstruction;
 
 import java.util.ArrayList;
@@ -54,6 +51,26 @@ public class DOMNode implements Cloneable {
       }
     }
     return nodes;
+  }
+
+  public String getName() {
+    Optional<DOMNode> rootAlias = getRoot().getEdge(NodeType.ALIAS);
+    if (rootAlias.isEmpty()) {
+      throw new RuntimeException("Root must have an alias");
+    }
+    Optional<DOMNode> alias = getEdge(NodeType.ALIAS);
+    if (alias.isEmpty()) {
+      try {
+        return rootAlias.get().getVariant().getString()+"/"+this+"~"+this.getType().toString();
+      } catch (DOMNodeVariantTypeMismatchException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    try {
+      return rootAlias.get().getVariant().getString()+"/"+alias.get().getVariant().getString()+"~"+this.getType().toString();
+    } catch (DOMNodeVariantTypeMismatchException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public void replaceEdges(DOMNode newNode) throws DOMNodeEdgeDuplicationException, DOMNodeRuleNonExistentException, DOMNodeRuleTypeViolationException, DOMNodeRulePluralityViolationException {

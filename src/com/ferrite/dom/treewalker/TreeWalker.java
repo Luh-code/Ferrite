@@ -51,7 +51,7 @@ public class TreeWalker implements Runnable {
   }
 
   public void print(String message) {
-    System.out.printf("TreeWalker '%s': %s\n", this, message);
+    System.out.printf("TreeWalker '%s'@'%s': %s\n", this, this.position.getName() , message);
   }
 
   public void addInstruction(TreeWalkerInstruction instruction) {
