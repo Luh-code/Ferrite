@@ -12,7 +12,7 @@ import java.util.stream.IntStream;
 // A regex-based XML Tokenizer with builtin syntax checking
 public class XMLTokenizer {
   private XMLToken[] tokens;
-  private Pattern xmlPattern = Pattern.compile("<[^>]+>|[^<]+");
+  private Pattern xmlPattern = Pattern.compile("<[^?][^>]+>|[^<]+");
   private Pattern xmlAttibutePattern = Pattern.compile("\\s*([^\\s=]*)\\s*(?:=\\s*\"([^\"]*)\"|=\\s*([^\\s>]*))");
 
   public void tokenize(String xmlString) throws SerializationTokenMissingClosingTagException, SerializationTokenMissingOpeningTagException, SerializationMismatchedAttributeValueCountException {
@@ -35,12 +35,18 @@ public class XMLTokenizer {
       }
       if(strippedPart.endsWith(">")) {
         strippedPart = strippedPart.substring(0, strippedPart.length()-1);
+        if (strippedPart.endsWith("/")) {
+          strippedPart = strippedPart.substring(0, strippedPart.length()-1);
+        }
       }
       String[] strippedSubParts = strippedPart.split(" ");
       String tag = (strippedSubParts.length>0 ? strippedSubParts[0] : "");
 
       //System.out.println(part);
       if (!part.startsWith("<")) { // If eval to true, it is plain text
+        if (part.startsWith("\n")) {
+          continue;
+        }
         // Add and match token
         XMLTextToken tempToken = new XMLTextToken(part, openTokens.size());
         if (openTokens.isEmpty()) {
@@ -51,8 +57,27 @@ public class XMLTokenizer {
         continue;
       }
 
-      if (part.charAt(1) == '/') { // if eval to true it is a closing tag
-        if (openTokens.isEmpty() || !openTokens.peek().getTag().equals(strippedPart)) {
+      char secondLastChar = part.charAt(part.length() - 2);
+      if (part.charAt(1) != '/') {
+        // must be an opening tag, push to openTokens and add to token list
+        XMLOpeningToken tempToken = new XMLOpeningToken(tag, openTokens.size());
+        openTokens.push(tempToken);
+        temp.add(tempToken);
+
+        // search for attributes and add them to the Token list
+        int firstSpace = strippedPart.indexOf(" ");
+        if(firstSpace != -1) {
+          XMLAttributeToken[] attributes = extractAttributes(strippedPart.substring(firstSpace), tempToken);
+          temp.addAll(Arrays.stream(attributes).toList());
+        }
+
+        if (secondLastChar != '/') {
+          continue;
+        }
+      }
+
+      if (part.charAt(1) == '/' || secondLastChar == '/') { // if eval to true it is a closing tag
+        if (openTokens.isEmpty() || !openTokens.peek().getTag().equals(tag)) {
           throw new SerializationTokenMissingClosingTagException(openTokens.peek().getTag());
         }
         // Set pair tag in openTokens.peek()
@@ -63,21 +88,7 @@ public class XMLTokenizer {
         temp.add(tempToken);
         // Remove opening token from openTokens
         openTokens.pop();
-        continue;
       }
-
-      // otherwise it must be an opening tag, push to openTokens and add to token list
-      XMLOpeningToken tempToken = new XMLOpeningToken(tag, openTokens.size());
-      openTokens.push(tempToken);
-      temp.add(tempToken);
-
-      // search for attributes ana dd them to the Token list
-      int firstSpace = strippedPart.indexOf(" ");
-      if(firstSpace == -1) {
-        continue;
-      }
-      XMLAttributeToken[] attributes = extractAttributes(strippedPart.substring(firstSpace), tempToken);
-      temp.addAll(Arrays.stream(attributes).toList());
     }
 
     if (!openTokens.isEmpty()) {
@@ -117,6 +128,10 @@ public class XMLTokenizer {
               token.addAttribute(i);
             })
             .toArray(XMLAttributeToken[]::new);
+  }
+
+  public XMLToken[] getTokens() {
+    return tokens;
   }
 
   public static void main(String[] args) {

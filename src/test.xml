@@ -1,0 +1,40 @@
+<system>
+    <ferrite_major>1</ferrite_major>
+    <ferrite_minor>0</ferrite_minor>
+    <major>1</major>
+    <minor>0</minor>
+    <alias>TestSystem</alias>
+    <machine>
+        <external>true</external>
+        <alias>TestMachine</alias>
+        <path>src/TestMachine.xml</path>
+    </machine>
+    <machine>
+        <major>1</major>
+        <minor>1</minor>
+        <external>false</external>
+        <alias>TestMachine2</alias>
+    </machine>
+    <state>
+        <alias>TM1ext1-TM2ts0</alias>
+        <entry>false</entry>
+        <origin>false</origin>
+        <transition>
+            <state query="FROM machine GET 'TestMachine2' GET 'test state0'"/>
+            <if><value>true</value></if>
+        </transition>
+        <begin/>
+        <end/>
+    </state>
+    <state>
+        <alias>0</alias>
+        <entry>true</entry>
+        <origin>true</origin>
+        <begin/>
+        <transition>
+            <state query="FROM machine GET 'ALIAS'=='TestMachine' FROM state GET 'ALIAS'=='state0'"/>
+            <if><value>true</value></if>
+        </transition>
+        <end/>
+    </state>
+</system>

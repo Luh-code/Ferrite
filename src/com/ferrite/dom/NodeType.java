@@ -2,6 +2,10 @@ package com.ferrite.dom;
 
 import com.ferrite.dom.exceptions.DOMNodeRuleNonExistentException;
 import com.ferrite.dom.exceptions.DOMNodeRulePermittedChildDuplicationException;
+import com.ferrite.dom.treewalker.instructions.TreeWalkerInstruction;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public enum NodeType {
   SYSTEM(Rules.SYSTEM),
@@ -28,11 +32,15 @@ public enum NodeType {
 
   OUTPUT(Rules.OUTPUT),
 
+  ACTIVE(Rules.ACTIVE),
+
   ORIGIN(Rules.ORIGIN),
 
   ENTRY(Rules.ENTRY),
 
   BEGIN(Rules.BEGIN),
+
+  END(Rules.END),
 
   TRANSITION(Rules.TRANSITION),
 
@@ -41,6 +49,7 @@ public enum NodeType {
   IF(Rules.IF),
 
   EQUALS(Rules.EQUALS),
+  NOT_EQUALS(Rules.NOT_EQUALS),
 
   LESSER(Rules.LESSER),
 
@@ -60,8 +69,16 @@ public enum NodeType {
   }
 
   public NodeRule getRule() {
+    ArrayList<NodeSettings> settings = new ArrayList<>(List.of(this.rules.getSettings()));
+    for (Rules r : this.rules.getExtensions().get()) {
+      for (NodeSettings s : r.getSettings()){
+        if (!settings.contains(s)) {
+          settings.add(s);
+        }
+      }
+    }
     try {
-      return new NodeRule(this, this.rules.getSettings(), this.rules.getNodeVariantType());
+      return new NodeRule(this, settings.toArray(NodeSettings[]::new), this.rules.getNodeVariantType());
     } catch (DOMNodeRulePermittedChildDuplicationException e) {
       throw new RuntimeException(e);
     }
@@ -98,5 +115,14 @@ public enum NodeType {
       }
     }
     return null;
+  }
+
+  public TreeWalkerInstruction[] getInstructions(DOMNode node) {
+    ArrayList<TreeWalkerInstruction> instructions = new ArrayList<>();
+    for (Rules r : this.rules.getExtensions().get()) {
+      instructions.addAll(List.of(r.applyInstructions(node)));
+    }
+    instructions.addAll(List.of(this.rules.applyInstructions(node)));
+    return instructions.toArray(TreeWalkerInstruction[]::new);
   }
 }
