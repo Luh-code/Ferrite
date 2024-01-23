@@ -1,8 +1,4 @@
 <machine>
-<ferrite_major>1</ferrite_major>
-<ferrite_minor>0</ferrite_minor>
-<major>1</major>
-<minor>1</minor>
 <alias>TestMachine</alias>
 <external>false</external>
 <trigger>
@@ -13,8 +9,7 @@
 	<alias>2</alias>
 	<type>digital</type>
 </trigger>
-<trigger>
-	<alias>timeout1</alias>
+<trigger alias="timeout1">
 	<type>timer</type>
 </trigger>
 <trigger alias="TestTrigger" type="value" value="0"/>
