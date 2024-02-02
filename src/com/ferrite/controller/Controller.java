@@ -11,10 +11,26 @@ public class Controller {
 
   private HashMap<String, Timer> timers;
 
-  public Controller(int inputBits, int outputBits) {
+  private Controller(int inputBits, int outputBits) {
     this.input = new BitSet(inputBits);
     this.output = new BitSet(outputBits);
     this.timers = new HashMap<>();
+  }
+
+  private static Controller instance;
+
+  public static void initInstance(int inputBits, int outputBits) {
+    if (instance != null) {
+      throw new RuntimeException("Cannot create multiple Controller instances");
+    }
+    instance = new Controller(inputBits, outputBits);
+  }
+
+  public static Controller getInstance() {
+    if (instance == null) {
+      throw new RuntimeException("Cannot get uninitialized instance");
+    }
+    return instance;
   }
 
   public void updateInput(BitSet input) {

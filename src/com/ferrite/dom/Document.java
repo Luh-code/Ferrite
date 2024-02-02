@@ -81,9 +81,9 @@ public class Document {
       throw new RuntimeException(e);
     }
 
-    Controller controller = new Controller(32, 32);
+    Controller.initInstance(32, 32);
 
-    TreeWalker tw = new TreeWalker(controller);
+    TreeWalker tw = new TreeWalker(Controller.getInstance());
     tw.dispatch(d.getRoot());
   }
 }

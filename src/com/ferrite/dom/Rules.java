@@ -1,5 +1,7 @@
 package com.ferrite.dom;
 
+import com.ferrite.controller.Controller;
+import com.ferrite.controller.JavascriptEnvironment;
 import com.ferrite.dom.exceptions.*;
 import com.ferrite.dom.exceptions.TreeWalker.TreeWalkerException;
 import com.ferrite.dom.exceptions.TreeWalker.TreeWalkerNodeNotFoundException;
@@ -9,6 +11,10 @@ import com.ferrite.dom.query.QueryEngine;
 import com.ferrite.dom.treewalker.instructions.*;
 import org.w3c.dom.Node;
 
+import javax.script.Bindings;
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Optional;
@@ -74,22 +80,6 @@ enum Rules {
     // begin is expected to move up itself
 
     // LATE INSTRUCTIONS (inverted ORDER )
-
-    /*// go to end
-    Optional<DOMNode> end = node.getEdge(NodeType.END);
-    if (end.isEmpty()) {
-      throw new RuntimeException("State needs to have a child of type END");
-    }
-    instructions.add(new TreeWalkerGetInstruction(true));
-    instructions.add(new TreeWalkerMoveInstruction(end.get(), 0, true));
-    // end is expected to move up itself*/
-
-    /*Optional<DOMNode> state = node.getEdge(NodeType.STATE);
-    if (state.isEmpty()) {
-      throw new RuntimeException("State needs to have a child of type STATE");
-    }
-    instructions.add(new TreeWalkerMoveInstruction(state.get(), 0, true));
-    instructions.add(new TreeWalkerGetInstruction(true));*/
 
     ArrayList<TreeWalkerInstruction> transitonLoopInstructuions = new ArrayList<>();
 
@@ -243,13 +233,14 @@ enum Rules {
           new NodeSettings(NodeType.NOT_EQUALS).setArrayable(),
           new NodeSettings(NodeType.LESSER).setArrayable(),
           new NodeSettings(NodeType.GREATER).setArrayable(),
-          new NodeSettings(NodeType.VALUE)
+          new NodeSettings(NodeType.VALUE),
+          new NodeSettings(NodeType.SCRIPT).setArrayable(),
   }, (DOMNode node) -> {
     boolean res = false;
     for (DOMNode edge : node.getEdges()) {
       TreeWalkerMarkerInstruction temp = null;
       switch (edge.getType()) {
-        case EQUALS, NOT_EQUALS, LESSER, GREATER, VALUE -> {
+        case EQUALS, NOT_EQUALS, LESSER, GREATER, VALUE, SCRIPT -> {
           temp = (TreeWalkerMarkerInstruction) edge.getInstructions(edge)[0];
         }
       }
@@ -445,6 +436,28 @@ enum Rules {
       return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(true) };
     }
     return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(false) };
+  }),
+  SCRIPT(STRING,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> {
+    ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+    Bindings bindings = engine.createBindings();
+    bindings.put("input", Controller.getInstance().getInput());
+    bindings.put("output", Controller.getInstance().getOutput());
+    bindings.put("env", JavascriptEnvironment.getInstance());
+
+    Object jsResult;
+    try {
+      jsResult = engine.eval(node.getVariant().getString(), bindings);
+    } catch (ScriptException | DOMNodeVariantTypeMismatchException e) {
+      throw new RuntimeException(e);
+    }
+
+    if (!(jsResult instanceof Boolean)) {
+      throw new RuntimeException("A <script> is supposed to be a predicate");
+    }
+
+    return new TreeWalkerInstruction[] {
+            new TreeWalkerMarkerInstruction((boolean)jsResult),
+    };
   }),
   QUERY(STRING,() -> new Rules[]{ }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}),
   CUSTOM(NONE,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}); // has to always remain empty here, as rules for a custom node are handled later down the line
