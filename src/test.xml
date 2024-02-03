@@ -16,12 +16,12 @@
         <alias>TestMachine2</alias>
     </machine>
     <state>
-        <alias>TM1ext1-TM2ts0</alias>
+        <alias>end</alias>
         <entry>false</entry>
         <origin>false</origin>
         <transition>
             <state query="FROM machine GET 'TestMachine2' GET 'test state0'"/>
-            <if><value>true</value></if>
+            <if><value>false</value></if>
         </transition>
         <begin/>
         <end/>

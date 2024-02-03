@@ -9,6 +9,7 @@ import com.ferrite.dom.exceptions.query.QueryEmptyResultException;
 import com.ferrite.dom.exceptions.query.QueryInvalidSyntaxException;
 import com.ferrite.dom.query.QueryEngine;
 import com.ferrite.dom.treewalker.instructions.*;
+import org.graalvm.polyglot.Engine;
 import org.w3c.dom.Node;
 
 import javax.script.Bindings;
@@ -20,6 +21,9 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Value;
 
 import static com.ferrite.dom.NodeVariantType.*;
 
@@ -438,7 +442,15 @@ enum Rules {
     return new TreeWalkerInstruction[] { new TreeWalkerMarkerInstruction(false) };
   }),
   SCRIPT(STRING,() -> new Rules[]{ GENERAL }, () -> new NodeSettings[]{}, (DOMNode node) -> {
-    ScriptEngine engine = new ScriptEngineManager().getEngineByName("nashorn");
+    boolean jsResult;
+    try {
+      Value result = JavascriptEnvironment.getInstance().getContext().eval("js", node.getVariant().getString());
+      jsResult = result.asBoolean();
+    } catch (DOMNodeVariantTypeMismatchException e) {
+      throw new RuntimeException(e);
+    }
+
+    /*ScriptEngine engine = new ScriptEngineManager(null).getEngineByName("nashorn");
     Bindings bindings = engine.createBindings();
     bindings.put("input", Controller.getInstance().getInput());
     bindings.put("output", Controller.getInstance().getOutput());
@@ -449,14 +461,14 @@ enum Rules {
       jsResult = engine.eval(node.getVariant().getString(), bindings);
     } catch (ScriptException | DOMNodeVariantTypeMismatchException e) {
       throw new RuntimeException(e);
-    }
+    }*/
 
-    if (!(jsResult instanceof Boolean)) {
+    /*if (!(jsResult instanceof Boolean)) {
       throw new RuntimeException("A <script> is supposed to be a predicate");
-    }
+    }*/
 
     return new TreeWalkerInstruction[] {
-            new TreeWalkerMarkerInstruction((boolean)jsResult),
+            new TreeWalkerMarkerInstruction(jsResult),
     };
   }),
   QUERY(STRING,() -> new Rules[]{ }, () -> new NodeSettings[]{}, (DOMNode node) -> new TreeWalkerInstruction[]{}),

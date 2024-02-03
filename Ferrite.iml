@@ -16,5 +16,8 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="graalvm.sdk.graal" level="project" />
+    <orderEntry type="library" name="graalvm.js" level="project" />
+    <orderEntry type="library" name="graalvm.truffle.api" level="project" />
   </component>
 </module>

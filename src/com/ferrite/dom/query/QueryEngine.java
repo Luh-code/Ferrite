@@ -65,8 +65,12 @@ public class QueryEngine {
           lastTag = "GET";
           getToken();
         }
+        case "ROOT" -> {
+          lastTag = "ROOT";
+          moveToRoot();
+        }
         default -> {
-          throwInvalidSyntaxException(currentToken, "FROM or GET");
+          throwInvalidSyntaxException(currentToken, "FROM or GET or ROOT");
         }
       }
       ++currentToken;
@@ -105,6 +109,11 @@ public class QueryEngine {
       return;
     }
     throw new QueryEmptyResultException(this.query);
+  }
+
+  private void moveToRoot() {
+    this.currentNode = this.currentNode.getRoot();
+    this.selected = this.currentNode.getEdges();
   }
 
   private boolean compareVariant(NodeVariant var, String operation, String value) throws QueryInvalidSyntaxException {

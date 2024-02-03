@@ -53,41 +53,17 @@
 	<alias>another state</alias>
 	<origin>false</origin>
 	<begin>
-		<output>
-			<query>FROM output GET 'alias'=='1'</query>
-			<active>1</active>
-		</output>
-		<trigger>
-			<query>FROM trigger GET 'alias'=='timeout1'</query>
-		</trigger>
 	</begin>
 	<transition>
-		<state query="FROM trigger GET 'alias'=='state0'"/>
-		<if>
-			<equals>
-				<trigger query="FROM trigger GET 'alias'=='timeout1'"/>
-				<value>0</value>
-			</equals>
-		</if>
-	</transition>
-	<transition>
-		<state query="FROM trigger GET 'alias'=='external state2'"/>
-		<if>
-			<equals>
-				<trigger query="FROM trigger GET 'alias'=='1'"/>
-				<value>1</value>
-			</equals>
+		<state query="ROOT FROM state GET 'alias'=='end'"/>
+		<if script="1===1">
 		</if>
 	</transition>
 	<end>
 		<output>
-			<query>FROM state GET 'alias'=='1'</query>
-			<active>0</active>
+			<query>FROM output GET 'alias'=='1'</query>
+			<value>0</value>
 		</output>
-		<trigger>
-			<query>FROM state GET 'alias'=='timeout1'</query>
-			<active>0</active>
-		</trigger>
 	</end>
 </state>
 </machine>
